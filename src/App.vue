@@ -23,7 +23,11 @@
 			:dataLength="computedData.length"
 			:selected="selected"
 		/>
-		<ForceDiagram v-if="computedData.length > 0" :data="computedData" />
+		<ForceDiagram
+			v-if="computedData.length > 0"
+			:data="computedData"
+			:radius="radiusFunction"
+		/>
 	</div>
 </template>
 
@@ -47,7 +51,6 @@ export default {
 			selected: null,
 			w: window.innerWidth * 0.9,
 			h: window.innerHeight * 0.5,
-			radius: null,
 		};
 	},
 	async mounted() {
@@ -77,75 +80,35 @@ export default {
 
 			data.forEach(function (d) {
 				d.Age = +d.Age;
-				(d.r = self.radius), (d.x = self.w / 2);
-				d.y = self.h / 2.25;
+				d.x = self.w / 2;
+				d.y = self.h / 2;
 			});
-			console.log(data);
+
 			return data;
+		},
+		radiusFunction() {
+			// canvasSize cannot be smaller than (r * 2) * this.computedData.length
+			// human terms: bubble diameter * number of bubbles
+			// algebra: (canvasSize/this.computedData.length) / 2 == r
+
+			const length = this.computedData.length;
+			var w = this.w;
+			var h = this.h;
+
+			let canvasSize = w * 2 + h * 2;
+			// FIXME: Need some way to handle small lengths
+			let r = length < 50 ? 20 : canvasSize / length / 2;
+
+			console.log([w, h]);
+			console.log(r);
+
+			return r;
 		},
 	},
 	methods: {
-		radiusFunction: function (length) {
-			if (window.innerWidth < 1000) {
-				var w = this.w;
-				// console.log("Small screen");
-				if (length > 1000) {
-					return w / 150;
-				} else if (length > 500) {
-					return w / 100;
-				} else if (length > 250) {
-					return w / 75;
-				} else if (length > 120) {
-					return w / 100;
-				} else if (length > 100) {
-					return w / 80;
-				} else if (length > 80) {
-					return w / 75;
-				} else if (length > 60) {
-					return w / 70;
-				} else if (length > 40) {
-					return w / 65;
-				} else if (length > 20) {
-					return w / 50;
-				} else if (length > 10) {
-					return w / 45;
-				} else if (length > 5) {
-					return w / 2.255;
-				} else if (length <= 5) {
-					return w / 2.25;
-				}
-			} else {
-				var h = this.h;
-				// console.log("Big screen");
-				if (length > 1000) {
-					return h / 150;
-				} else if (length > 500) {
-					return h / 100;
-				} else if (length > 250) {
-					return h / 75;
-				} else if (length > 100) {
-					return h / 50;
-				} else if (length > 80) {
-					return h / 45;
-				} else if (length > 60) {
-					return h / 40;
-				} else if (length > 40) {
-					return h / 25;
-				} else if (length > 20) {
-					return h / 22.5;
-				} else if (length > 10) {
-					return h / 25;
-				} else if (length > 5) {
-					return h / 15;
-				} else if (length <= 5) {
-					return h / 10;
-				}
-			}
-		},
 		watchResize: function () {
 			this.w = window.innerWidth * 0.9;
 			this.h = window.innerHeight * 0.5;
-			this.radius = this.radiusFunction(this.computedData.length);
 		},
 	},
 	created() {
@@ -156,16 +119,25 @@ export default {
 	},
 	watch: {
 		computedData() {
-			this.radius = this.radiusFunction(this.computedData.length);
-			console.log(this.radius);
+			console.log(
+				"Radius is",
+				this.radiusFunction,
+				". Changed because computedData.length changed"
+			);
 		},
 		w() {
-			this.radius = this.radiusFunction(this.computedData.length);
-			console.log(this.radius);
+			console.log(
+				"Radius is",
+				this.radiusFunction,
+				". Changed because width changed"
+			);
 		},
 		h() {
-			this.radius = this.radiusFunction(this.computedData.length);
-			console.log(this.radius);
+			console.log(
+				"Radius is",
+				this.radiusFunction,
+				". Changed because height changed"
+			);
 		},
 	},
 };

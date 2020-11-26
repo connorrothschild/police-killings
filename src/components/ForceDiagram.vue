@@ -28,6 +28,7 @@ export default {
 	name: "ForceDiagram",
 	props: {
 		data: Array,
+		radius: Number,
 	},
 	data() {
 		return {
@@ -38,15 +39,27 @@ export default {
 		};
 	},
 	mounted() {
+		console.log("Instantiated Force Diagram");
+		const r = this.radius;
+		console.log(r);
 		this.simulation = d3
 			.forceSimulation(this.data)
+			.force("collide", d3.forceCollide(r).iterations(2)) // iterations changes the duration before circles stop overlapping
+			.force("charge", d3.forceManyBody().strength(0.5))
 			.force(
-				"collide",
-				d3.forceCollide((d) => d.r)
+				"y",
+				d3
+					.forceY()
+					.y(this.h / 2)
+					.strength(0.1)
 			)
-			.force("charge", d3.forceManyBody().strength(0.05))
-			.force("y", d3.forceY().y(this.h / 2.25))
-			.force("x", d3.forceX().x(this.w / 2))
+			.force(
+				"x",
+				d3
+					.forceX()
+					.x(this.w / 2)
+					.strength(0.1)
+			)
 			.on("tick", ticked);
 
 		this.svg = d3
@@ -57,6 +70,7 @@ export default {
 		const circles = this.svg
 			.selectAll("circle")
 			.data(this.data)
+			.attr("r", this.radius)
 			.style("stroke", "black")
 			.style("fill", (d) => this.colorScale(d.Race))
 			.style("stroke-width", 2)
@@ -79,8 +93,7 @@ export default {
 	methods: {
 		changeText: function (event) {
 			const d = event.originalTarget.__data__;
-			console.log(d.Name);
-			console.log(d);
+			console.log("Looking at", d.Name);
 		},
 		showTooltip: function (event) {
 			var self = this;
@@ -115,13 +128,11 @@ export default {
 				.moveToFront()
 				.transition()
 				.delay(150)
-				.attr("r", (d) => d.r * 2);
+				.attr("r", this.radius * 2);
 		},
 		unhighlightCircle: function (event) {
 			const circle = event.originalTarget;
-			d3.select(circle)
-				.transition()
-				.attr("r", (d) => d.r);
+			d3.select(circle).transition().attr("r", this.radius);
 		},
 		colorScale: function (race) {
 			const color = d3
@@ -192,16 +203,24 @@ export default {
 		watchResize: function () {
 			this.w = window.innerWidth * 0.9;
 			this.h = window.innerHeight * 0.5;
-			// console.log(this.w, this.h);
 
 			this.simulation
+				.force("collide", d3.forceCollide(this.radius).iterations(2)) // iterations changes the duration before circles stop overlapping
+				.force("charge", d3.forceManyBody().strength(0.5))
 				.force(
-					"collide",
-					d3.forceCollide((d) => d.r)
+					"y",
+					d3
+						.forceY()
+						.y(this.h / 2)
+						.strength(0.1)
 				)
-				.force("charge", d3.forceManyBody().strength(0.05))
-				.force("y", d3.forceY().y(this.h / 2.25))
-				.force("x", d3.forceX().x(this.w / 2))
+				.force(
+					"x",
+					d3
+						.forceX()
+						.x(this.w / 2)
+						.strength(0.1)
+				)
 				.alpha(1)
 				.restart();
 
@@ -210,7 +229,7 @@ export default {
 				.attr("height", this.h)
 				.selectAll("circle")
 				.data(this.data)
-				.attr("r", (d) => d.r);
+				.attr("r", this.radius);
 		},
 	},
 	created() {
