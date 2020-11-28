@@ -1,28 +1,31 @@
 <template>
 	<div id="app">
-		<div class="is-inline-flex mb-3">
-			<p
-				class="vertical-center is-size-4 has-text-weight-bold mr-3 mb-3-mobile"
-			>
-				Police Killings by the
-			</p>
-			<b-field style="min-width: 350px">
-				<b-autocomplete
-					rounded
-					v-model="name"
-					:data="filteredDepartmentList"
-					placeholder="e.g. Houston Police Department"
-					@select="(option) => (selected = option)"
+		<!-- <div class="section has-background-light"></div> -->
+		<div class="has-background-light py-5">
+			<div class="is-inline-flex mb-3-mobile">
+				<p
+					class="has-text-black vertical-center is-size-4 has-text-weight-bold mr-3 mb-3 mr-0-mobile"
 				>
-					<template slot="empty">No results found</template>
-				</b-autocomplete>
-			</b-field>
+					Police Killings by the
+				</p>
+				<b-field style="min-width: 350px">
+					<b-autocomplete
+						rounded
+						v-model="name"
+						:data="filteredDepartmentList"
+						placeholder="e.g. Houston Police Department"
+						@select="(option) => (selected = option)"
+					>
+						<template slot="empty">No results found</template>
+					</b-autocomplete>
+				</b-field>
+			</div>
+			<TopLevelText
+				v-if="selected"
+				:dataLength="computedData.length"
+				:selected="selected"
+			/>
 		</div>
-		<TopLevelText
-			v-if="selected"
-			:dataLength="computedData.length"
-			:selected="selected"
-		/>
 		<ForceDiagram
 			v-if="computedData.length > 0"
 			:data="computedData"
@@ -90,14 +93,16 @@ export default {
 			// canvasSize cannot be smaller than (r * 2) * this.computedData.length
 			// human terms: bubble diameter * number of bubbles
 			// algebra: (canvasSize/this.computedData.length) / 2 == r
+			// but because space isnt evenly distributed in canvas, even this doesn't work exactly
+			// divide by 4 just to be safe (rather too small than too large!)
 
 			const length = this.computedData.length;
 			var w = this.w;
 			var h = this.h;
 
 			let canvasSize = w * 2 + h * 2;
-			// FIXME: Need some way to handle small lengths
-			let r = length < 50 ? 20 : canvasSize / length / 2;
+			// FIXME: Need better (?) way to handle small lengths
+			let r = length < 50 ? 20 : canvasSize / length / 4;
 
 			console.log([w, h]);
 			console.log(r);
@@ -112,10 +117,10 @@ export default {
 		},
 	},
 	created() {
-		window.addEventListener("resize", debounce(this.watchResize, 150));
+		window.addEventListener("resize", debounce(this.watchResize, 1000));
 	},
 	destroyed() {
-		window.removeEventListener("resize", debounce(this.watchResize, 150));
+		window.removeEventListener("resize", debounce(this.watchResize, 1000));
 	},
 	watch: {
 		computedData() {
@@ -149,8 +154,6 @@ export default {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	text-align: center;
-	color: #2c3e50;
-	margin-top: 60px;
 }
 
 .vertical-center {
@@ -166,5 +169,9 @@ export default {
 		margin-right: 0 !important;
 		margin-bottom: 0.75rem !important;
 	}
+}
+
+.spacer {
+	height: 5vh;
 }
 </style>

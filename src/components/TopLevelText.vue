@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<div class="subtitle">
+		<div class="subtitle has-text-dark">
 			<p>
 				Between 2013 and 2020, the {{ selected }} killed
 				<span class="has-text-weight-semibold"
@@ -9,7 +9,6 @@
 			</p>
 			<p>Do you know their {{ this.namePlural }}?</p>
 		</div>
-		<p>Click for more information on an incident.</p>
 	</div>
 </template>
 

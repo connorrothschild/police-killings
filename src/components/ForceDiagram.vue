@@ -1,5 +1,23 @@
 <template>
 	<section>
+		<div class="is-inline">
+			<p class="my-3">Click for more information on an incident</p>
+			<div>
+				<div class="is-inline buttons has-addons">
+					<button
+						v-for="(group, index) in groupingVariables"
+						v-bind:key="index"
+						@click="splitBubbles(group)"
+						class="button"
+					>
+						{{ group }}
+					</button>
+					<!-- FIXME: can't get 						
+ v-bind:class="[selected === group ? 'has-text-light is-selected' : '',]" 
+ to work -->
+				</div>
+			</div>
+		</div>
 		<div id="container">
 			<svg id="diagram">
 				<circle
@@ -36,29 +54,41 @@ export default {
 			h: window.innerHeight * 0.5,
 			simulation: null,
 			svg: null,
+			xStrength: 0.1,
+			yStrength: 0.5,
+			chargeStrength: 20, // How much "repel" there is between each circle
+			groupingVariables: [
+				"All",
+				"Race",
+				"Sex",
+				"Armed Status",
+				"Cause of death",
+				"Year",
+			],
+			selected: "Race", // Current selected button
 		};
 	},
 	mounted() {
 		console.log("Instantiated Force Diagram");
+
 		const r = this.radius;
-		console.log(r);
 		this.simulation = d3
 			.forceSimulation(this.data)
 			.force("collide", d3.forceCollide(r).iterations(2)) // iterations changes the duration before circles stop overlapping
-			.force("charge", d3.forceManyBody().strength(0.5))
+			.force("charge", d3.forceManyBody().strength(this.chargeStrength))
 			.force(
 				"y",
 				d3
 					.forceY()
 					.y(this.h / 2)
-					.strength(0.1)
+					.strength(this.yStrength)
 			)
 			.force(
 				"x",
 				d3
 					.forceX()
 					.x(this.w / 2)
-					.strength(0.1)
+					.strength(this.xStrength)
 			)
 			.on("tick", ticked);
 
@@ -89,8 +119,39 @@ export default {
 
 		this.simulation.nodes(this.data).on("tick", ticked).alpha(1).restart();
 	},
-	computed: {},
+	computed: {
+		centerScale() {
+			return d3.scalePoint().padding(0.8).range([0, this.w]);
+		},
+	},
 	methods: {
+		splitBubbles: function (group) {
+			this.selected = group;
+			const centerScale = this.centerScale;
+			const data = this.data;
+
+			centerScale.domain(
+				data.map(function (d) {
+					return d[group];
+				})
+			);
+
+			if (group == "All") {
+				groupBubbles();
+			} else {
+				// showTitles(group, this.centerScale);
+
+				this.simulation.force(
+					"x",
+					d3
+						.forceX()
+						.strength(0.2)
+						.x((d) => centerScale(d[group]))
+				);
+
+				this.simulation.alpha(1).restart();
+			}
+		},
 		changeText: function (event) {
 			const d = event.originalTarget.__data__;
 			console.log("Looking at", d.Name);
@@ -105,7 +166,7 @@ export default {
 
 			const tooltip_string = `<span class='has-text-weight-bold'> 
 			${d.Name} </span> was
-			${self.ageFunction(d.Age)} ${d.Race} ${d.Sex.toLowerCase()}.
+			${self.ageFunction(d.Age)} ${self.raceFunction(d.Race)} ${d.Sex.toLowerCase()}.
 			<br>
 			${self.pronounFunction(d.Sex)} killed by ${d["Cause of death"]
 				.toLowerCase()
@@ -162,6 +223,11 @@ export default {
 		ageFunction: function (age) {
 			return isNaN(age) | (age == 0) ? "an unknown age " : `a ${age} year old`;
 		},
+		raceFunction: function (race) {
+			return (race == undefined) | (race == "Unknown Race")
+				? "unknown race"
+				: race;
+		},
 		pronounFunction: function (sex) {
 			if (sex == "Male") {
 				return "He was";
@@ -206,22 +272,22 @@ export default {
 
 			this.simulation
 				.force("collide", d3.forceCollide(this.radius).iterations(2)) // iterations changes the duration before circles stop overlapping
-				.force("charge", d3.forceManyBody().strength(0.5))
+				.force("charge", d3.forceManyBody().strength(this.chargeStrength))
+				.alpha(1)
 				.force(
 					"y",
 					d3
 						.forceY()
 						.y(this.h / 2)
-						.strength(0.1)
+						.strength(this.yStrength)
 				)
 				.force(
 					"x",
 					d3
 						.forceX()
 						.x(this.w / 2)
-						.strength(0.1)
+						.strength(this.xStrength)
 				)
-				.alpha(1)
 				.restart();
 
 			this.svg
@@ -233,15 +299,14 @@ export default {
 		},
 	},
 	created() {
-		window.addEventListener("resize", debounce(this.watchResize, 150));
+		window.addEventListener("resize", debounce(this.watchResize, 1000));
 	},
 	destroyed() {
-		window.removeEventListener("resize", debounce(this.watchResize, 150));
+		window.removeEventListener("resize", debounce(this.watchResize, 1000));
 	},
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .tooltip {
 	background-color: white;
@@ -252,5 +317,9 @@ export default {
 	pointer-events: none;
 	border: 1px solid #e0e0e0;
 	display: block;
+}
+
+.flex-grow {
+	flex-grow: 1;
 }
 </style>
