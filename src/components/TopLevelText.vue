@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<div class="subtitle has-text-dark">
+		<div class="subtitle has-text-dark mt-2">
 			<p>
 				Between 2013 and 2020, the {{ selected }} killed
 				<span class="has-text-weight-semibold"

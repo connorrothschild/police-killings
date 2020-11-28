@@ -4,17 +4,65 @@
 			<p class="my-3">Click for more information on an incident</p>
 			<div>
 				<div class="is-inline buttons has-addons">
-					<button
-						v-for="(group, index) in groupingVariables"
-						v-bind:key="index"
-						@click="splitBubbles(group)"
+					<!-- <button
 						class="button"
+						@click="setSelected('All'), splitBubbles('All')"
+						v-bind:class="[selected == 'All' ? 'is-primary is-selected' : '']"
 					>
-						{{ group }}
+						<span class="heading mb-0">All</span>
 					</button>
-					<!-- FIXME: can't get 						
- v-bind:class="[selected === group ? 'has-text-light is-selected' : '',]" 
- to work -->
+					<button
+						class="button"
+						@click="setSelected('Race'), splitBubbles('Race')"
+						v-bind:class="{ 'is-primary is-selected': selected == 'Race' }"
+					>
+						<span class="heading mb-0">Race</span>
+					</button>
+					<button
+						class="button"
+						v-bind:class="{ 'is-primary is-selected': selected == 'Sex' }"
+						@click="splitBubbles('Sex')"
+					>
+						<span class="heading mb-0">Sex</span>
+					</button>
+					<button
+						class="button"
+						v-bind:class="{ 'is-primary is-selected': selected == 'Year' }"
+						@click="splitBubbles('Year')"
+					>
+						<span class="heading mb-0">Year</span>
+					</button>
+					<button
+						class="button"
+						v-bind:class="{
+							'is-primary is-selected': selected == 'Armed Status',
+						}"
+						@click="splitBubbles('Armed Status')"
+					>
+						<span class="heading mb-0">Armed Status</span>
+					</button>
+					<button
+						class="button"
+						v-bind:class="{
+							'is-primary is-selected': selected == 'Cause of death',
+						}"
+						@click="splitBubbles('Cause of death')"
+					>
+						<span class="heading mb-0">Cause of Death</span>
+					</button> -->
+
+					<!-- BEST PRACTICE THAT ISN'T WORKING (?) -->
+					<button
+						v-for="(item, index) in groupingVariables"
+						:key="index"
+						class="is-inline heading mb-0 button"
+						@click="splitBubbles(item)"
+					>
+						<!-- Why is this not working???
+						:class="[selected == item ? 'is-primary is-selected' : '']"
+						-->
+						{{ item }}
+					</button>
 				</div>
 			</div>
 		</div>
@@ -65,7 +113,7 @@ export default {
 				"Cause of death",
 				"Year",
 			],
-			selected: "Race", // Current selected button
+			selected: "All", // Current selected button
 		};
 	},
 	mounted() {
@@ -127,18 +175,25 @@ export default {
 	methods: {
 		splitBubbles: function (group) {
 			this.selected = group;
-			const centerScale = this.centerScale;
-			const data = this.data;
+			// console.log(event.originalTarget);
 
-			centerScale.domain(
-				data.map(function (d) {
-					return d[group];
-				})
-			);
+			// const buttons = document.getElementsByClassName("is-primary");
+			// console.log(buttons);
+			// buttons.length > 0 ? buttons[0].classList.remove("is-primary") : null;
+			// event.originalTarget.classList.add("is-primary");
 
 			if (group == "All") {
-				groupBubbles();
+				this.groupBubbles();
 			} else {
+				const centerScale = this.centerScale;
+				const data = this.data;
+
+				centerScale.domain(
+					data.map(function (d) {
+						return d[group];
+					})
+				);
+
 				// showTitles(group, this.centerScale);
 
 				this.simulation.force(
@@ -152,9 +207,15 @@ export default {
 				this.simulation.alpha(1).restart();
 			}
 		},
+		groupBubbles: function () {
+			this.simulation.force("x", d3.forceX().x(this.w / 2));
+			this.simulation.alpha(1).restart();
+		},
 		changeText: function (event) {
 			const d = event.originalTarget.__data__;
 			console.log("Looking at", d.Name);
+
+			//TODO: Change top text here with hyperlink.
 		},
 		showTooltip: function (event) {
 			var self = this;
@@ -267,6 +328,7 @@ export default {
 				${temp_date[2]}, ${temp_date[0]}`;
 		},
 		watchResize: function () {
+			this.selected = "All";
 			this.w = window.innerWidth * 0.9;
 			this.h = window.innerHeight * 0.5;
 

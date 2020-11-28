@@ -1,7 +1,7 @@
 <template>
 	<div id="app">
 		<!-- <div class="section has-background-light"></div> -->
-		<div class="has-background-light py-5">
+		<div class="has-background-light pt-5 pb-4">
 			<div class="is-inline-flex mb-3-mobile">
 				<p
 					class="has-text-black vertical-center is-size-4 has-text-weight-bold mr-3 mb-3 mr-0-mobile"
@@ -154,6 +154,7 @@ export default {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	text-align: center;
+	color: black;
 }
 
 .vertical-center {
