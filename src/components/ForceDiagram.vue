@@ -104,7 +104,8 @@ export default {
 			svg: null,
 			xStrength: 0.1,
 			yStrength: 0.5,
-			chargeStrength: 20, // How much "repel" there is between each circle
+			iterations: 1, // The duration before circles stop overlapping. Whatever you do, don't make this 0
+			chargeStrength: 1, // How much "repel" there is between each circle
 			groupingVariables: [
 				"All",
 				"Race",
@@ -119,24 +120,22 @@ export default {
 	mounted() {
 		console.log("Instantiated Force Diagram");
 
-		const r = this.radius;
 		this.simulation = d3
 			.forceSimulation(this.data)
-			.force("collide", d3.forceCollide(r).iterations(2)) // iterations changes the duration before circles stop overlapping
+			.force(
+				"collide",
+				d3.forceCollide().radius(this.radius).iterations(this.iterations)
+			)
 			.force("charge", d3.forceManyBody().strength(this.chargeStrength))
 			.force(
 				"y",
-				d3
-					.forceY()
-					.y(this.h / 2)
-					.strength(this.yStrength)
+				d3.forceY().y(this.h / 2)
+				// .strength(this.yStrength)
 			)
 			.force(
 				"x",
-				d3
-					.forceX()
-					.x(this.w / 2)
-					.strength(this.xStrength)
+				d3.forceX().x(this.w / 2)
+				// .strength(this.xStrength)
 			)
 			.on("tick", ticked);
 
@@ -151,7 +150,7 @@ export default {
 			.attr("r", this.radius)
 			.style("stroke", "black")
 			.style("fill", (d) => this.colorScale(d.Race))
-			.style("stroke-width", 2)
+			.style("stroke-width", 1)
 			.style("pointer-events", "all");
 
 		function ticked() {
@@ -194,21 +193,32 @@ export default {
 					})
 				);
 
+				console.log(centerScale.domain());
+
 				// showTitles(group, this.centerScale);
 
-				this.simulation.force(
-					"x",
-					d3
-						.forceX()
-						.strength(0.2)
-						.x((d) => centerScale(d[group]))
-				);
+				this.simulation
+					.force(
+						"x",
+						d3
+							.forceX()
+							// .strength(this.xStrength)
+							.x((d) => centerScale(d[group]))
+					)
+					.force("charge", d3.forceManyBody().strength(this.chargeStrength));
 
 				this.simulation.alpha(1).restart();
+
+				this.svg
+					.selectAll("circle")
+					.data(this.data)
+					.attr("r", this.radius)
+					.style("fill", (d) => this.colorScale(d.Race));
 			}
 		},
 		groupBubbles: function () {
 			this.simulation.force("x", d3.forceX().x(this.w / 2));
+
 			this.simulation.alpha(1).restart();
 		},
 		changeText: function (event) {
@@ -225,19 +235,34 @@ export default {
 
 			tooltip.transition().delay(150).duration(500).style("opacity", 1);
 
-			const tooltip_string = `<span class='has-text-weight-bold'> 
-			${d.Name} </span> was
-			${self.ageFunction(d.Age)} ${self.raceFunction(d.Race)} ${d.Sex.toLowerCase()}.
-			<br>
-			${self.pronounFunction(d.Sex)} killed by ${d["Cause of death"]
-				.toLowerCase()
-				.replace(/,(?=[^,]*$)/, " and")}
-			by the ${d["Agencies responsible for death"].replace(/,(?=[^,]*$)/, " and")} 
-			on ${self.dateFunction(d.Date)}.`;
+			// const tooltip_string = `<span class='has-text-weight-bold'>
+			// ${d.Name} </span> was
+			// ${self.ageFunction(d.Age)} ${self.raceFunction(d.Race)} ${d.Sex.toLowerCase()}.
+			// <br>
+			// ${self.pronounFunction(d.Sex)} killed by ${d["Cause of death"]
+			// 	.toLowerCase()
+			// 	.replace(/,(?=[^,]*$)/, " and")}
+			// by the ${d["Agencies responsible for death"].replace(/,(?=[^,]*$)/, " and")}
+			// on ${self.dateFunction(d.Date)}.`;
+
+			const tooltip_string = `<p class='title is-size-6 mb-1 has-text-centered has-text-black'> ${
+				d.Name
+			} </p> 
+			<p class='is-size-7 has-text-centered'>${self.ageFunction(
+				d.Age
+			)} ${self.raceFunction(d.Race)} ${self.sexFunction(d.Sex)}.
+			<p class='is-size-7 has-text-centered'>Killed by ${d[
+				"Agencies responsible for death"
+			].replace(/,(?=[^,]*$)/, " and")} on ${self.dateFunction(d.Date)}.`;
 
 			tooltip
 				.html(tooltip_string)
-				.style("left", event.pageX + 30 + "px")
+				.style(
+					"left",
+					event.pageX > 0.8 * this.w
+						? event.pageX - 250 + "px"
+						: event.pageX + 30 + "px"
+				) // so that tooltip doesnt go off right side of screen
 				.style("top", event.pageY - 30 + "px");
 		},
 		hideTooltip: function () {
@@ -282,12 +307,13 @@ export default {
 			return color(race);
 		},
 		ageFunction: function (age) {
-			return isNaN(age) | (age == 0) ? "an unknown age " : `a ${age} year old`;
+			return isNaN(age) | (age == 0) ? "A" : `A ${age} year old`;
 		},
 		raceFunction: function (race) {
-			return (race == undefined) | (race == "Unknown Race")
-				? "unknown race"
-				: race;
+			return (race == undefined) | (race == "Unknown Race") ? "" : race;
+		},
+		sexFunction: function (sex) {
+			return (sex == "Male") | (sex == "Female") ? sex.toLowerCase() : "person";
 		},
 		pronounFunction: function (sex) {
 			if (sex == "Male") {
@@ -332,32 +358,32 @@ export default {
 			this.w = window.innerWidth * 0.9;
 			this.h = window.innerHeight * 0.5;
 
-			this.simulation
-				.force("collide", d3.forceCollide(this.radius).iterations(2)) // iterations changes the duration before circles stop overlapping
-				.force("charge", d3.forceManyBody().strength(this.chargeStrength))
-				.alpha(1)
-				.force(
-					"y",
-					d3
-						.forceY()
-						.y(this.h / 2)
-						.strength(this.yStrength)
-				)
-				.force(
-					"x",
-					d3
-						.forceX()
-						.x(this.w / 2)
-						.strength(this.xStrength)
-				)
-				.restart();
-
+			console.log("On resize the radius is ", this.radius);
 			this.svg
 				.attr("width", this.w)
 				.attr("height", this.h)
 				.selectAll("circle")
 				.data(this.data)
 				.attr("r", this.radius);
+
+			this.simulation
+				.force(
+					"collide",
+					d3.forceCollide().radius(this.radius).iterations(this.iterations)
+				)
+				.force("charge", d3.forceManyBody().strength(this.chargeStrength))
+				.force(
+					"y",
+					d3.forceY().y(this.h / 2)
+					// .strength(this.yStrength)
+				)
+				.force(
+					"x",
+					d3.forceX().x(this.w / 2)
+					// .strength(this.xStrength)
+				);
+
+			this.simulation.alpha(1).restart();
 		},
 	},
 	created() {
@@ -374,11 +400,12 @@ export default {
 	background-color: white;
 	position: absolute;
 	text-align: left;
-	padding: 4px;
+	padding: 0.5rem;
 	border-radius: 8px;
 	pointer-events: none;
 	border: 1px solid #e0e0e0;
 	display: block;
+	max-width: 350px;
 }
 
 .flex-grow {

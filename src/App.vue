@@ -102,7 +102,7 @@ export default {
 
 			let canvasSize = w * 2 + h * 2;
 			// FIXME: Need better (?) way to handle small lengths
-			let r = length < 50 ? 20 : canvasSize / length / 4;
+			let r = length < 50 ? canvasSize / length / 10 : canvasSize / length / 4;
 
 			console.log([w, h]);
 			console.log(r);
