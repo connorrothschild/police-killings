@@ -4,65 +4,17 @@
 			<p class="my-3">Click for more information on an incident</p>
 			<div>
 				<div class="is-inline buttons has-addons">
-					<!-- <button
-						class="button"
-						@click="setSelected('All'), splitBubbles('All')"
-						v-bind:class="[selected == 'All' ? 'is-primary is-selected' : '']"
-					>
-						<span class="heading mb-0">All</span>
-					</button>
-					<button
-						class="button"
-						@click="setSelected('Race'), splitBubbles('Race')"
-						v-bind:class="{ 'is-primary is-selected': selected == 'Race' }"
-					>
-						<span class="heading mb-0">Race</span>
-					</button>
-					<button
-						class="button"
-						v-bind:class="{ 'is-primary is-selected': selected == 'Sex' }"
-						@click="splitBubbles('Sex')"
-					>
-						<span class="heading mb-0">Sex</span>
-					</button>
-					<button
-						class="button"
-						v-bind:class="{ 'is-primary is-selected': selected == 'Year' }"
-						@click="splitBubbles('Year')"
-					>
-						<span class="heading mb-0">Year</span>
-					</button>
-					<button
-						class="button"
-						v-bind:class="{
-							'is-primary is-selected': selected == 'Armed Status',
-						}"
-						@click="splitBubbles('Armed Status')"
-					>
-						<span class="heading mb-0">Armed Status</span>
-					</button>
-					<button
-						class="button"
-						v-bind:class="{
-							'is-primary is-selected': selected == 'Cause of death',
-						}"
-						@click="splitBubbles('Cause of death')"
-					>
-						<span class="heading mb-0">Cause of Death</span>
-					</button> -->
-
-					<!-- BEST PRACTICE THAT ISN'T WORKING (?) -->
 					<button
 						v-for="(item, index) in groupingVariables"
 						:key="index"
 						class="is-inline heading mb-0 button"
 						@click="splitBubbles(item)"
 					>
-						<!-- Why is this not working???
-						:class="[selected == item ? 'is-primary is-selected' : '']"
-						-->
 						{{ item }}
 					</button>
+					<!-- Why is this not working???
+						:class="[selected == item ? 'is-primary is-selected' : '']"
+						-->
 				</div>
 			</div>
 		</div>
@@ -71,7 +23,7 @@
 				<circle
 					v-for="(item, index) in data"
 					:key="index"
-					:r="item.r"
+					:r="radius"
 					:cx="item.x"
 					:cy="item.y"
 					@click="changeText"
@@ -173,7 +125,7 @@ export default {
 	},
 	methods: {
 		splitBubbles: function (group) {
-			this.selected = group;
+			// this.selected = group;
 			// console.log(event.originalTarget);
 
 			// const buttons = document.getElementsByClassName("is-primary");
@@ -200,10 +152,7 @@ export default {
 				this.simulation
 					.force(
 						"x",
-						d3
-							.forceX()
-							// .strength(this.xStrength)
-							.x((d) => centerScale(d[group]))
+						d3.forceX().x((d) => centerScale(d[group]))
 					)
 					.force("charge", d3.forceManyBody().strength(this.chargeStrength));
 
@@ -218,7 +167,6 @@ export default {
 		},
 		groupBubbles: function () {
 			this.simulation.force("x", d3.forceX().x(this.w / 2));
-
 			this.simulation.alpha(1).restart();
 		},
 		changeText: function (event) {
@@ -358,7 +306,6 @@ export default {
 			this.w = window.innerWidth * 0.9;
 			this.h = window.innerHeight * 0.5;
 
-			console.log("On resize the radius is ", this.radius);
 			this.svg
 				.attr("width", this.w)
 				.attr("height", this.h)
@@ -387,10 +334,21 @@ export default {
 		},
 	},
 	created() {
-		window.addEventListener("resize", debounce(this.watchResize, 1000));
+		window.addEventListener("resize", debounce(this.watchResize, 500));
 	},
 	destroyed() {
-		window.removeEventListener("resize", debounce(this.watchResize, 1000));
+		window.removeEventListener("resize", debounce(this.watchResize, 500));
+	},
+	watch: {
+		data: function (val) {
+			console.log("DATA JUST CHANGED", this.data);
+			console.log(val);
+			// this.groupBubbles();
+		},
+		radius: function (val) {
+			console.log("RADIUS JUST CHANGED", this.radius);
+			console.log(val);
+		},
 	},
 };
 </script>

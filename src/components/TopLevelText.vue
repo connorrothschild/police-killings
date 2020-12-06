@@ -1,14 +1,12 @@
 <template>
-	<div>
-		<div class="subtitle has-text-dark mt-2">
-			<p>
-				Between 2013 and 2020, the {{ selected }} killed
-				<span class="has-text-weight-semibold"
-					>{{ dataLength }} {{ this.personFunction }}</span
-				>.
-			</p>
-			<p>Do you know their {{ this.namePlural }}?</p>
-		</div>
+	<div class="subtitle has-text-dark mt-2">
+		<p>
+			Between 2013 and 2020, the {{ selected }} killed
+			<span class="has-text-weight-semibold"
+				>{{ dataLength }} {{ this.personFunction }}</span
+			>.
+		</p>
+		<p>Do you know their {{ this.namePlural }}?</p>
 	</div>
 </template>
 
@@ -36,6 +34,5 @@ export default {
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 </style>

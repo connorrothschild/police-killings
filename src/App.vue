@@ -13,24 +13,26 @@
 						rounded
 						v-model="name"
 						:data="filteredDepartmentList"
-						placeholder="e.g. Houston Police Department"
+						placeholder="Houston Police Department (TX)"
 						@select="(option) => (selected = option)"
-					>
+						@typing="selected = null"
+						><!-- Here, I set selected to null on type. We have to do this whenever we start off with a default value (e.g. Houston Police Deparment) -->
 						<template slot="empty">No results found</template>
 					</b-autocomplete>
 				</b-field>
 			</div>
 			<TopLevelText
-				v-if="selected"
+				v-if="computedData.length > 0 && selected"
 				:dataLength="computedData.length"
 				:selected="selected"
 			/>
 		</div>
 		<ForceDiagram
-			v-if="computedData.length > 0"
+			v-if="computedData.length > 0 && selected"
 			:data="computedData"
-			:radius="radiusFunction"
+			:radius="radius"
 		/>
+		<Footer />
 	</div>
 </template>
 
@@ -38,6 +40,7 @@
 import * as d3 from "d3";
 import ForceDiagram from "@/components/ForceDiagram.vue";
 import TopLevelText from "@/components/TopLevelText.vue";
+import Footer from "@/components/Footer.vue";
 import debounce from "lodash/debounce";
 
 export default {
@@ -45,15 +48,17 @@ export default {
 	components: {
 		ForceDiagram,
 		TopLevelText,
+		Footer,
 	},
 	data() {
 		return {
 			killings: [],
 			departments: [],
 			name: "",
-			selected: null,
+			selected: "Houston Police Department (TX)", // null
 			w: window.innerWidth * 0.9,
 			h: window.innerHeight * 0.5,
+			radius: 10,
 		};
 	},
 	async mounted() {
@@ -72,15 +77,13 @@ export default {
 			});
 		},
 		filteredData() {
-			const dataFiltered = this.killings.filter((d) =>
+			return this.killings.filter((d) =>
 				d["Agency responsible for death"].includes(this.selected)
 			);
-			return dataFiltered;
 		},
 		computedData() {
 			var self = this;
-			const data = this.filteredData;
-
+			var data = this.filteredData;
 			data.forEach(function (d) {
 				d.Age = +d.Age;
 				d.x = self.w / 2;
@@ -101,8 +104,9 @@ export default {
 			var h = this.h;
 
 			let canvasSize = w * 2 + h * 2;
+
 			// FIXME: Need better (?) way to handle small lengths
-			let r = length < 50 ? canvasSize / length / 10 : canvasSize / length / 4;
+			let r = length < 50 ? 10 : canvasSize / length / 4;
 
 			console.log([w, h]);
 			console.log(r);
@@ -114,35 +118,32 @@ export default {
 		watchResize: function () {
 			this.w = window.innerWidth * 0.9;
 			this.h = window.innerHeight * 0.5;
+			this.radius = this.radiusFunction;
+			console.log("Hello", this.radius);
 		},
 	},
 	created() {
-		window.addEventListener("resize", debounce(this.watchResize, 1000));
+		window.addEventListener("resize", debounce(this.watchResize, 500));
 	},
 	destroyed() {
-		window.removeEventListener("resize", debounce(this.watchResize, 1000));
+		window.removeEventListener("resize", debounce(this.watchResize, 500));
 	},
 	watch: {
 		computedData() {
+			this.radius = this.radiusFunction;
 			console.log(
 				"Radius is",
-				this.radiusFunction,
-				". Changed because computedData.length changed"
+				this.radius,
+				". Changed because computedData changed"
 			);
 		},
 		w() {
-			console.log(
-				"Radius is",
-				this.radiusFunction,
-				". Changed because width changed"
-			);
+			this.radius = this.radiusFunction;
+			console.log("Radius is", this.radius, ". Changed because width changed");
 		},
 		h() {
-			console.log(
-				"Radius is",
-				this.radiusFunction,
-				". Changed because height changed"
-			);
+			this.radius = this.radiusFunction;
+			console.log("Radius is", this.radius, ". Changed because height changed");
 		},
 	},
 };
