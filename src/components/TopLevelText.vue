@@ -1,5 +1,5 @@
 <template>
-	<div class="subtitle has-text-dark mt-2">
+	<div class="subtitle has-text-dark mt-2 px-1">
 		<p>
 			Between 2013 and 2020, the {{ selected }} killed
 			<span class="has-text-weight-semibold"

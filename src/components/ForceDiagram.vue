@@ -1,13 +1,23 @@
 <template>
-	<section>
+	<section class="padding">
 		<div class="is-inline">
-			<p class="my-3">Click for more information on an incident</p>
+			<div class="my-3">
+				<a
+					v-if="personSelected.text && personSelected.url"
+					:href="personSelected.url"
+					rel="noopener"
+					target="_blank"
+					v-html="personSelected.text"
+				></a>
+				<p v-else>Click for more information on an incident.</p>
+			</div>
 			<div>
 				<div class="is-inline buttons has-addons">
 					<button
 						v-for="(item, index) in groupingVariables"
 						:key="index"
 						class="is-inline heading mb-0 button"
+						:class="[selected === item ? 'is-dark' : '']"
 						@click="splitBubbles(item)"
 					>
 						{{ item }}
@@ -50,7 +60,7 @@ export default {
 	},
 	data() {
 		return {
-			w: window.innerWidth * 0.9,
+			w: window.innerWidth * 0.95,
 			h: window.innerHeight * 0.5,
 			simulation: null,
 			svg: null,
@@ -67,6 +77,7 @@ export default {
 				"Year",
 			],
 			selected: "All", // Current selected button
+			personSelected: { text: null, url: null }, // Default null until the user clicks on a person
 		};
 	},
 	mounted() {
@@ -125,13 +136,7 @@ export default {
 	},
 	methods: {
 		splitBubbles: function (group) {
-			// this.selected = group;
-			// console.log(event.originalTarget);
-
-			// const buttons = document.getElementsByClassName("is-primary");
-			// console.log(buttons);
-			// buttons.length > 0 ? buttons[0].classList.remove("is-primary") : null;
-			// event.originalTarget.classList.add("is-primary");
+			this.selected = group;
 
 			if (group == "All") {
 				this.groupBubbles();
@@ -145,9 +150,8 @@ export default {
 					})
 				);
 
-				console.log(centerScale.domain());
-
-				// showTitles(group, this.centerScale);
+				// console.log(centerScale.domain());
+				this.showTitles(group, this.centerScale);
 
 				this.simulation
 					.force(
@@ -166,14 +170,18 @@ export default {
 			}
 		},
 		groupBubbles: function () {
+			this.hideTitles();
+
 			this.simulation.force("x", d3.forceX().x(this.w / 2));
 			this.simulation.alpha(1).restart();
 		},
 		changeText: function (event) {
 			const d = event.originalTarget.__data__;
-			console.log("Looking at", d.Name);
 
-			//TODO: Change top text here with hyperlink.
+			d.Name = d.Name == "Name withheld by police" ? "this victim" : d.Name;
+
+			this.personSelected.text = `Take me to a news article describing <span class='inline-link'>${d.Name}</span>'s death.`;
+			this.personSelected.url = d.Link;
 		},
 		showTooltip: function (event) {
 			var self = this;
@@ -212,6 +220,61 @@ export default {
 						: event.pageX + 30 + "px"
 				) // so that tooltip doesnt go off right side of screen
 				.style("top", event.pageY - 30 + "px");
+		},
+		showTitles: function (byVar, scale) {
+			const { svg } = this;
+
+			const groups = scale.domain();
+
+			const LABEL_POS = 40;
+			const RECT_HEIGHT = window.innerWidth > 600 ? 30 : 20;
+			const RECT_PADDING = this.w / groups.length / 4;
+			const LABEL_WIDTH = this.w / groups.length - RECT_PADDING;
+
+			const titles = svg.selectAll(".label-text").data(groups);
+			const rects = svg.selectAll(".rect").data(groups);
+
+			rects
+				.enter()
+				.append("rect")
+				.attr("class", "rect")
+				.merge(rects)
+				.attr("x", function (d) {
+					return scale(d);
+				})
+				.attr("y", LABEL_POS)
+				.attr("transform", `translate(-${LABEL_WIDTH / 2},-20)`)
+				.attr("width", LABEL_WIDTH)
+				.attr("height", RECT_HEIGHT)
+				.style("fill", "white")
+				.style("opacity", 0.8);
+
+			rects.moveToFront();
+
+			titles
+				.enter()
+				.append("text")
+				.attr("class", "label-text")
+				.merge(titles)
+				.attr("x", function (d) {
+					return scale(d);
+				})
+				.attr("y", window.innerWidth > 600 ? LABEL_POS : LABEL_POS - 5)
+				.attr("text-anchor", "middle")
+				.text(function (d) {
+					return d;
+				});
+
+			titles.moveToFront();
+			// .call(wrap, 30);
+			// TODO: add # of obs after text (e.g. "Unarmed (6 people)")
+
+			titles.exit().remove();
+			rects.exit().remove();
+		},
+		hideTitles: function () {
+			this.svg.selectAll(".label-text").remove();
+			this.svg.selectAll(".rect").remove();
 		},
 		hideTooltip: function () {
 			var tooltip = d3.select("#tooltip");
@@ -281,7 +344,7 @@ export default {
 				: selected_loc;
 		},
 		dateFunction: function (date_str) {
-			// // h/t https://stackoverflow.com/questions/20438352/how-to-convert-date-to-words-in-html
+			// h/t https://stackoverflow.com/questions/20438352/how-to-convert-date-to-words-in-html
 			const months = [
 				"January",
 				"February",
@@ -303,8 +366,10 @@ export default {
 		},
 		watchResize: function () {
 			this.selected = "All";
-			this.w = window.innerWidth * 0.9;
+			this.w = window.innerWidth * 0.95;
 			this.h = window.innerHeight * 0.5;
+
+			this.hideTitles();
 
 			this.svg
 				.attr("width", this.w)
@@ -343,7 +408,6 @@ export default {
 		data: function (val) {
 			console.log("DATA JUST CHANGED", this.data);
 			console.log(val);
-			// this.groupBubbles();
 		},
 		radius: function (val) {
 			console.log("RADIUS JUST CHANGED", this.radius);
@@ -353,7 +417,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .tooltip {
 	background-color: white;
 	position: absolute;
@@ -368,5 +432,33 @@ export default {
 
 .flex-grow {
 	flex-grow: 1;
+}
+
+a[href] {
+	color: black;
+}
+
+.inline-link {
+	padding: 3px;
+	border-radius: 3px;
+	background: #e5e5e5;
+}
+
+.label-text {
+	font-size: 1em;
+}
+
+@media screen and (max-width: 600px) {
+	.label-text {
+		font-size: 0.75em;
+	}
+}
+
+.padding {
+	padding: 0 2.5%;
+}
+
+.input:active {
+	border-color: black;
 }
 </style>

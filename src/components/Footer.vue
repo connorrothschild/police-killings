@@ -1,5 +1,5 @@
 <template>
-	<div class="foot">
+	<div class="footer">
 		<p>
 			Built by
 			<a
@@ -31,7 +31,7 @@ export default {
 </script>
 
 <style scoped>
-.foot {
+.footer {
 	position: fixed;
 	bottom: 0;
 	width: 100%;
