@@ -1,7 +1,7 @@
 <template>
 	<div id="app">
-		<!-- <div class="section has-background-light"></div> -->
 		<div class="has-background-light pt-5 pb-4">
+			<!-- <div class="pt-5 pb-4"> -->
 			<div class="is-inline-flex mb-3-mobile">
 				<p
 					class="has-text-black vertical-center is-size-4 has-text-weight-bold mr-3 mb-3 mr-0-mobile"
@@ -21,6 +21,8 @@
 					</b-autocomplete>
 				</b-field>
 			</div>
+			<br />
+			<StateSelector />
 			<TopLevelText
 				v-if="computedData.length > 0 && selected"
 				:dataLength="computedData.length"
@@ -39,6 +41,7 @@
 <script>
 import * as d3 from "d3";
 import ForceDiagram from "@/components/ForceDiagram.vue";
+import StateSelector from "@/components/StateSelector.vue";
 import TopLevelText from "@/components/TopLevelText.vue";
 import Footer from "@/components/Footer.vue";
 import debounce from "lodash/debounce";
@@ -47,6 +50,7 @@ export default {
 	name: "App",
 	components: {
 		ForceDiagram,
+		StateSelector,
 		TopLevelText,
 		Footer,
 	},
@@ -55,6 +59,7 @@ export default {
 			killings: [],
 			departments: [],
 			name: "",
+			selectedState: null,
 			selected: "Houston Police Department (TX)", // null
 			w: window.innerWidth * 0.9,
 			h: window.innerHeight * 0.5,
@@ -75,6 +80,9 @@ export default {
 					option.toString().toLowerCase().indexOf(this.name.toLowerCase()) >= 0
 				);
 			});
+		},
+		stateList() {
+			return this.killings.map((d) => d.State);
 		},
 		filteredData() {
 			return this.killings.filter((d) =>

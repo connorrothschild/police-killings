@@ -22,9 +22,6 @@
 					>
 						{{ item }}
 					</button>
-					<!-- Why is this not working???
-						:class="[selected == item ? 'is-primary is-selected' : '']"
-						-->
 				</div>
 			</div>
 		</div>
