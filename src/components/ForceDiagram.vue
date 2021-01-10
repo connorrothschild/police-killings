@@ -148,7 +148,7 @@ export default {
 				);
 
 				// console.log(centerScale.domain());
-				this.showTitles(group, this.centerScale);
+				this.showTitles(this.centerScale);
 
 				this.simulation
 					.force(
@@ -218,54 +218,79 @@ export default {
 				) // so that tooltip doesnt go off right side of screen
 				.style("top", event.pageY - 30 + "px");
 		},
-		showTitles: function (byVar, scale) {
+		showTitles: function (scale) {
+			// * A rather big method
+			// Here, we create a series of text labels, one for each group, that each have a rectangle behind them
+			// The rectangle's width is responsive to the text length, using this.getComputedTextLength
+			// https://stackoverflow.com/questions/29031659/calculate-width-of-text-before-drawing-the-text
+
+			// Destructure svg for convenient use
 			const { svg } = this;
 
-			const groups = scale.domain();
+			// textData will equal the groups (e.g. for race: ['Black', 'White', 'Asian', 'Hispanic', 'Unknown Race'])
+			const textData = scale.domain();
 
-			const LABEL_POS = 40;
-			const RECT_HEIGHT = window.innerWidth > 600 ? 30 : 20;
-			const RECT_PADDING = this.w / groups.length / 4;
-			const LABEL_WIDTH = this.w / groups.length - RECT_PADDING;
+			// textWidth will be populated later width px widths, depending on text length
+			let textWidth = [];
 
-			const titles = svg.selectAll(".label-text").data(groups);
-			const rects = svg.selectAll(".rect").data(groups);
+			// Define some constants
+			const LABEL_POS = 40; // Y position of labels
+			const RECT_HEIGHT = 30;
 
+			// Instantiate groups
+			const titles = svg.selectAll(".label-text").data(textData);
+			const rects = svg.selectAll(".rect").data(textData);
+
+			// * Here is where we populate textWidth
+			// Note: we're not actually appending anything here, just getting text widths
+			svg
+				.append("g")
+				.selectAll(".dummyText")
+				.data(textData)
+				.enter()
+				.append("text")
+				.text((d) => d)
+				// For each element, get its text length and push it to array
+				.each(function () {
+					var thisWidth = this.getComputedTextLength() * 1.2;
+					textWidth.push(thisWidth);
+					this.remove(); // Then, remove so they don't display
+				});
+
+			// Create rectangles with responsive widths
 			rects
 				.enter()
 				.append("rect")
 				.attr("class", "rect")
 				.merge(rects)
-				.attr("x", function (d) {
-					return scale(d);
-				})
+				.attr("x", (d) => scale(d))
+				.attr("rx", 5)
 				.attr("y", LABEL_POS)
-				.attr("transform", `translate(-${LABEL_WIDTH / 2},-20)`)
-				.attr("width", LABEL_WIDTH)
+				// eslint-disable-line no-unused-vars
+				.attr("transform", (d, i) => `translate(-${textWidth[i] / 2}, -20)`) // Rect should be centered, hence textWidth/2
+				// eslint-disable-line no-unused-vars
+				.attr("width", (d, i) => textWidth[i])
 				.attr("height", RECT_HEIGHT)
-				.style("fill", "white")
-				.style("opacity", 0.8);
+				.style("fill", "#F5F5F5")
+				.style("opacity", 0.95);
 
-			rects.moveToFront();
+			// ! TODO: add # of obs after text (e.g. "Unarmed (6 people)")
 
+			// Add REAL text
 			titles
 				.enter()
 				.append("text")
 				.attr("class", "label-text")
 				.merge(titles)
-				.attr("x", function (d) {
-					return scale(d);
-				})
-				.attr("y", window.innerWidth > 600 ? LABEL_POS : LABEL_POS - 5)
-				.attr("text-anchor", "middle")
-				.text(function (d) {
-					return d;
-				});
+				.attr("x", (d) => scale(d))
+				.attr("y", LABEL_POS)
+				.text((d) => d)
+				.attr("text-anchor", "middle");
 
+			rects.moveToFront();
 			titles.moveToFront();
-			// .call(wrap, 30);
-			// TODO: add # of obs after text (e.g. "Unarmed (6 people)")
 
+			// Exit remove pattern so that the labels update on group change
 			titles.exit().remove();
 			rects.exit().remove();
 		},
@@ -402,14 +427,14 @@ export default {
 		window.removeEventListener("resize", debounce(this.watchResize, 500));
 	},
 	watch: {
-		data: function (val) {
-			console.log("DATA JUST CHANGED", this.data);
-			console.log(val);
-		},
-		radius: function (val) {
-			console.log("RADIUS JUST CHANGED", this.radius);
-			console.log(val);
-		},
+		// data: function (val) {
+		// 	console.log("DATA JUST CHANGED", this.data);
+		// 	console.log(val);
+		// },
+		// radius: function (val) {
+		// 	console.log("RADIUS JUST CHANGED", this.radius);
+		// 	console.log(val);
+		// },
 	},
 };
 </script>

@@ -5,7 +5,7 @@
 		>
 			Or filter by state instead:
 		</p>
-		<b-field style="max-width: 150px">
+		<b-field style="width: 150px">
 			<b-autocomplete
 				size="is-small"
 				rounded
@@ -18,7 +18,6 @@
 				<template slot="empty">No results found</template>
 			</b-autocomplete>
 		</b-field>
-		<div v-if="stateNameToAbbr">TO DO: Filter by {{ stateNameToAbbr }}</div>
 	</div>
 </template>
 
@@ -86,7 +85,14 @@ export default {
 		};
 	},
 	mounted() {},
-	watch: {},
+	watch: {
+		// * When this value changes, emit back to parent
+		// ! If null, don't do anything
+		stateNameToAbbr(val) {
+			// https://dev-notes.eu/2018/05/passing-data-between-vue-components/
+			val ? this.$emit("childToParent", val) : null;
+		},
+	},
 	computed: {
 		filteredStateList() {
 			const names = this.stateList.map((d) => d.name);

@@ -1,28 +1,12 @@
 <template>
 	<div id="app">
 		<div class="has-background-light pt-5 pb-4">
-			<!-- <div class="pt-5 pb-4"> -->
-			<div class="is-inline-flex mb-3-mobile">
-				<p
-					class="has-text-black vertical-center is-size-4 has-text-weight-bold mr-3 mb-3 mr-0-mobile"
-				>
-					Police Killings by the
-				</p>
-				<b-field style="min-width: 350px">
-					<b-autocomplete
-						rounded
-						v-model="name"
-						:data="filteredDepartmentList"
-						placeholder="Houston Police Department (TX)"
-						@select="(option) => (selected = option)"
-						@typing="selected = null"
-						><!-- Here, I set selected to null on type. We have to do this whenever we start off with a default value (e.g. Houston Police Deparment) -->
-						<template slot="empty">No results found</template>
-					</b-autocomplete>
-				</b-field>
-			</div>
+			<DepartmentSelector
+				:departments="departments"
+				v-on:childToParent="receiveDepartmentName"
+			/>
 			<br />
-			<StateSelector />
+			<StateSelector v-on:childToParent="receiveStateName" />
 			<TopLevelText
 				v-if="computedData.length > 0 && selected"
 				:dataLength="computedData.length"
@@ -41,6 +25,7 @@
 <script>
 import * as d3 from "d3";
 import ForceDiagram from "@/components/ForceDiagram.vue";
+import DepartmentSelector from "@/components/DepartmentSelector.vue";
 import StateSelector from "@/components/StateSelector.vue";
 import TopLevelText from "@/components/TopLevelText.vue";
 import Footer from "@/components/Footer.vue";
@@ -51,6 +36,7 @@ export default {
 	components: {
 		ForceDiagram,
 		StateSelector,
+		DepartmentSelector,
 		TopLevelText,
 		Footer,
 	},
@@ -58,12 +44,10 @@ export default {
 		return {
 			killings: [],
 			departments: [],
-			name: "",
-			selectedState: null,
-			selected: "Houston Police Department (TX)", // null
 			w: window.innerWidth * 0.9,
 			h: window.innerHeight * 0.5,
 			radius: 10,
+			selected: "Houston Police Department (TX)",
 		};
 	},
 	async mounted() {
@@ -74,16 +58,6 @@ export default {
 		this.departments = departments.map((d) => d.all_agencies);
 	},
 	computed: {
-		filteredDepartmentList() {
-			return this.departments.filter((option) => {
-				return (
-					option.toString().toLowerCase().indexOf(this.name.toLowerCase()) >= 0
-				);
-			});
-		},
-		stateList() {
-			return this.killings.map((d) => d.State);
-		},
 		filteredData() {
 			return this.killings.filter((d) =>
 				d["Agency responsible for death"].includes(this.selected)
@@ -127,7 +101,12 @@ export default {
 			this.w = window.innerWidth * 0.9;
 			this.h = window.innerHeight * 0.5;
 			this.radius = this.radiusFunction;
-			console.log("Hello", this.radius);
+		},
+		receiveStateName(value) {
+			console.log(value);
+		},
+		receiveDepartmentName(value) {
+			this.selected = value;
 		},
 	},
 	created() {
@@ -138,7 +117,7 @@ export default {
 	},
 	watch: {
 		computedData() {
-			this.radius = this.radiusFunction;
+			// this.radius = this.radiusFunction;
 			console.log(
 				"Radius is",
 				this.radius,
