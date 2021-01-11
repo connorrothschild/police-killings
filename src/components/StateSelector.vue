@@ -11,8 +11,10 @@
 				rounded
 				v-model="state"
 				:data="filteredStateList"
-				placeholder="Texas"
-				@select="(option) => (selected = option)"
+				@select="
+					(option) =>
+						(selected = this.stateList.find((d) => d.name == option).abbr)
+				"
 				@typing="selected = null"
 				><!-- Here, I set selected to null on type. We have to do this whenever we start off with a default value (e.g. Houston Police Deparment) -->
 				<template slot="empty">No results found</template>
@@ -88,9 +90,9 @@ export default {
 	watch: {
 		// * When this value changes, emit back to parent
 		// ! If null, don't do anything
-		stateNameToAbbr(val) {
+		selected(val) {
 			// https://dev-notes.eu/2018/05/passing-data-between-vue-components/
-			val ? this.$emit("childToParent", val) : null;
+			this.$emit("childToParent", val);
 		},
 	},
 	computed: {

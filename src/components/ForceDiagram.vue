@@ -1,5 +1,23 @@
 <template>
 	<section class="padding">
+		<!-- Charge Strength<input
+			type="range"
+			min="-200"
+			max="50"
+			v-model="chargeStrength"
+		/>
+		{{ chargeStrength }}
+		<br />
+		Iterations<input type="range" min="1" max="10" v-model="iterations" />
+		{{ iterations }}
+		<br />
+		Collide Strength<input
+			type="range"
+			min="0"
+			max="2"
+			v-model="collideStrength"
+		/>
+		{{ collideStrength }} -->
 		<div class="is-inline">
 			<div class="my-3">
 				<a
@@ -58,13 +76,14 @@ export default {
 	data() {
 		return {
 			w: window.innerWidth * 0.95,
-			h: window.innerHeight * 0.5,
+			h: window.innerHeight * 0.65,
 			simulation: null,
 			svg: null,
-			xStrength: 0.1,
+			xStrength: 0.5,
 			yStrength: 0.5,
-			iterations: 1, // The duration before circles stop overlapping. Whatever you do, don't make this 0
-			chargeStrength: 1, // How much "repel" there is between each circle
+			iterations: 1, // 1 to 10. Higher iterations = ends overlap quicker
+			// chargeStrength: -2, // -200 to 50. How much "repel" there is between each circle. Higher number = greater attraction
+			collideStrength: 1, // 0 to 2.
 			groupingVariables: [
 				"All",
 				"Race",
@@ -78,70 +97,82 @@ export default {
 		};
 	},
 	mounted() {
-		console.log("Instantiated Force Diagram");
-
-		this.simulation = d3
-			.forceSimulation(this.data)
-			.force(
-				"collide",
-				d3.forceCollide().radius(this.radius).iterations(this.iterations)
-			)
-			.force("charge", d3.forceManyBody().strength(this.chargeStrength))
-			.force(
-				"y",
-				d3.forceY().y(this.h / 2)
-				// .strength(this.yStrength)
-			)
-			.force(
-				"x",
-				d3.forceX().x(this.w / 2)
-				// .strength(this.xStrength)
-			)
-			.on("tick", ticked);
-
-		this.svg = d3
-			.select("#diagram")
-			.attr("width", this.w)
-			.attr("height", this.h);
-
-		const circles = this.svg
-			.selectAll("circle")
-			.data(this.data)
-			.attr("r", this.radius)
-			.style("stroke", "black")
-			.style("fill", (d) => this.colorScale(d.Race))
-			.style("stroke-width", 1)
-			.style("pointer-events", "all");
-
-		function ticked() {
-			circles.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
-		}
-
-		// Define a function that moves circles to the front on hover https://gist.github.com/trtg/3922684
-		d3.selection.prototype.moveToFront = function () {
-			return this.each(function () {
-				this.parentNode.appendChild(this);
-			});
-		};
-
-		this.simulation.nodes(this.data).on("tick", ticked).alpha(1).restart();
+		this.instantiate();
 	},
 	computed: {
-		centerScale() {
-			return d3.scalePoint().padding(0.8).range([0, this.w]);
+		chargeStrength() {
+			// * If radius <= 5 (which means length > 100), make negative
+			return this.radius <= 5 ? -this.radius / 2 : 1; // else positive
 		},
+		// centerScale() {
+		// 	return d3.scalePoint().padding(0.8).range([0, this.w]);
+		// },
 	},
 	methods: {
+		instantiate: function () {
+			this.w = window.innerWidth * 0.95;
+			this.h = window.innerHeight * 0.65;
+
+			this.simulation = d3
+				.forceSimulation(this.data)
+				.force(
+					"collide",
+					d3
+						.forceCollide()
+						.radius(this.radius)
+						.strength(this.collideStrength)
+						.iterations(this.iterations)
+				)
+				.force("charge", d3.forceManyBody().strength(this.chargeStrength))
+				.force(
+					"y",
+					d3.forceY().y(this.h / 2)
+					// .strength(this.yStrength)
+				)
+				.force(
+					"x",
+					d3.forceX().x(this.w / 2)
+					// .strength(this.xStrength)
+				)
+				.on("tick", ticked);
+
+			this.svg = d3
+				.select("#diagram")
+				.attr("width", this.w)
+				.attr("height", this.h);
+
+			const circles = this.svg
+				.selectAll("circle")
+				.data(this.data)
+				.attr("r", this.radius)
+				.style("stroke", "black")
+				.style("fill", (d) => this.colorScale(d.Race))
+				.style("stroke-width", 1)
+				.style("pointer-events", "all");
+
+			function ticked() {
+				circles.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+			}
+
+			// Define a function that moves circles to the front on hover https://gist.github.com/trtg/3922684
+			d3.selection.prototype.moveToFront = function () {
+				return this.each(function () {
+					this.parentNode.appendChild(this);
+				});
+			};
+
+			this.simulation.nodes(this.data).on("tick", ticked).alpha(1).restart();
+		},
 		splitBubbles: function (group) {
 			this.selected = group;
 
 			if (group == "All") {
 				this.groupBubbles();
 			} else {
-				const centerScale = this.centerScale;
+				this.centerScale = d3.scalePoint().padding(0.8).range([0, this.w]);
 				const data = this.data;
 
-				centerScale.domain(
+				this.centerScale.domain(
 					data.map(function (d) {
 						return d[group];
 					})
@@ -153,7 +184,7 @@ export default {
 				this.simulation
 					.force(
 						"x",
-						d3.forceX().x((d) => centerScale(d[group]))
+						d3.forceX().x((d) => this.centerScale(d[group]))
 					)
 					.force("charge", d3.forceManyBody().strength(this.chargeStrength));
 
@@ -249,6 +280,7 @@ export default {
 				.data(textData)
 				.enter()
 				.append("text")
+				.attr("class", "label-text")
 				.text((d) => d)
 				// For each element, get its text length and push it to array
 				.each(function () {
@@ -265,7 +297,10 @@ export default {
 				.merge(rects)
 				.attr("x", (d) => scale(d))
 				.attr("rx", 5)
-				.attr("y", LABEL_POS)
+				// If there are 4+ groups, stagger y position slightly
+				.attr("y", (d, i) =>
+					textData.length > 4 ? (i % 2 ? LABEL_POS * 2 : LABEL_POS) : LABEL_POS
+				)
 				// eslint-disable-line no-unused-vars
 				.attr("transform", (d, i) => `translate(-${textWidth[i] / 2}, -20)`) // Rect should be centered, hence textWidth/2
 				// eslint-disable-line no-unused-vars
@@ -283,7 +318,9 @@ export default {
 				.attr("class", "label-text")
 				.merge(titles)
 				.attr("x", (d) => scale(d))
-				.attr("y", LABEL_POS)
+				.attr("y", (d, i) =>
+					textData.length > 4 ? (i % 2 ? LABEL_POS * 2 : LABEL_POS) : LABEL_POS
+				)
 				.text((d) => d)
 				.attr("text-anchor", "middle");
 
@@ -388,36 +425,15 @@ export default {
 		},
 		watchResize: function () {
 			this.selected = "All";
+			// this.hideTitles();
+
 			this.w = window.innerWidth * 0.95;
-			this.h = window.innerHeight * 0.5;
+			this.h = window.innerHeight * 0.65;
 
-			this.hideTitles();
+			this.svg.attr("width", this.w).attr("height", this.h);
 
-			this.svg
-				.attr("width", this.w)
-				.attr("height", this.h)
-				.selectAll("circle")
-				.data(this.data)
-				.attr("r", this.radius);
-
-			this.simulation
-				.force(
-					"collide",
-					d3.forceCollide().radius(this.radius).iterations(this.iterations)
-				)
-				.force("charge", d3.forceManyBody().strength(this.chargeStrength))
-				.force(
-					"y",
-					d3.forceY().y(this.h / 2)
-					// .strength(this.yStrength)
-				)
-				.force(
-					"x",
-					d3.forceX().x(this.w / 2)
-					// .strength(this.xStrength)
-				);
-
-			this.simulation.alpha(1).restart();
+			// this.centerScale;
+			this.groupBubbles();
 		},
 	},
 	created() {
@@ -426,16 +442,7 @@ export default {
 	destroyed() {
 		window.removeEventListener("resize", debounce(this.watchResize, 500));
 	},
-	watch: {
-		// data: function (val) {
-		// 	console.log("DATA JUST CHANGED", this.data);
-		// 	console.log(val);
-		// },
-		// radius: function (val) {
-		// 	console.log("RADIUS JUST CHANGED", this.radius);
-		// 	console.log(val);
-		// },
-	},
+	watch: {},
 };
 </script>
 
@@ -472,7 +479,7 @@ a[href] {
 
 @media screen and (max-width: 600px) {
 	.label-text {
-		font-size: 0.75em;
+		font-size: 0.5em;
 	}
 }
 

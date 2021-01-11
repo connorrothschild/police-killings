@@ -1,7 +1,8 @@
 <template>
 	<div class="subtitle has-text-dark mt-2 px-1">
 		<p>
-			Between 2013 and 2020, the {{ selected }} killed
+			Between 2013 and 2020, the
+			{{ this.filterType == "state" ? selected + " police " : selected }} killed
 			<span class="has-text-weight-semibold"
 				>{{ dataLength }} {{ this.personFunction }}</span
 			>.
@@ -16,6 +17,7 @@ export default {
 	props: {
 		dataLength: Number,
 		selected: String,
+		filterType: String,
 	},
 	data() {
 		return {};

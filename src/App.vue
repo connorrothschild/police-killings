@@ -11,6 +11,7 @@
 				v-if="computedData.length > 0 && selected"
 				:dataLength="computedData.length"
 				:selected="selected"
+				:filterType="filterType"
 			/>
 		</div>
 		<ForceDiagram
@@ -48,6 +49,7 @@ export default {
 			h: window.innerHeight * 0.5,
 			radius: 10,
 			selected: "Houston Police Department (TX)",
+			filterType: "department",
 		};
 	},
 	async mounted() {
@@ -59,9 +61,15 @@ export default {
 	},
 	computed: {
 		filteredData() {
-			return this.killings.filter((d) =>
-				d["Agency responsible for death"].includes(this.selected)
-			);
+			let data;
+			if (this.filterType == "department") {
+				data = this.killings.filter((d) =>
+					d["Agency responsible for death"].includes(this.selected)
+				);
+			} else if (this.filterType == "state") {
+				data = this.killings.filter((d) => d.State.includes(this.selected));
+			}
+			return data;
 		},
 		computedData() {
 			var self = this;
@@ -86,12 +94,24 @@ export default {
 			var h = this.h;
 
 			let canvasSize = w * 2 + h * 2;
-
+			// let r;
 			// FIXME: Need better (?) way to handle small lengths
 			let r = length < 50 ? 10 : canvasSize / length / 4;
-
-			console.log([w, h]);
-			console.log(r);
+			// if (length > 500) {
+			// r = canvasSize / length;
+			// } else if (length > 200) {
+			// 	r = canvasSize / length / 7;
+			// } else if (length > 100) {
+			// 	r = canvasSize / length / 10;
+			// } else if (length > 50) {
+			// 	r = canvasSize / length / 12;
+			// } else if (length > 25) {
+			// 	r = canvasSize / length / 14;
+			// } else if (length > 10) {
+			// 	r = canvasSize / length / 16;
+			// } else {
+			// 	r = canvasSize / length / 20;
+			// }
 
 			return r;
 		},
@@ -103,9 +123,11 @@ export default {
 			this.radius = this.radiusFunction;
 		},
 		receiveStateName(value) {
-			console.log(value);
+			this.filterType = "state";
+			this.selected = value;
 		},
 		receiveDepartmentName(value) {
+			this.filterType = "department";
 			this.selected = value;
 		},
 	},
@@ -117,12 +139,12 @@ export default {
 	},
 	watch: {
 		computedData() {
-			// this.radius = this.radiusFunction;
-			console.log(
-				"Radius is",
-				this.radius,
-				". Changed because computedData changed"
-			);
+			this.radius = this.radiusFunction;
+			// console.log(
+			// 	"Radius is",
+			// 	this.radius,
+			// 	". Changed because computedData changed"
+			// );
 		},
 		w() {
 			this.radius = this.radiusFunction;
