@@ -1,23 +1,5 @@
 <template>
 	<section class="padding">
-		<!-- Charge Strength<input
-			type="range"
-			min="-200"
-			max="50"
-			v-model="chargeStrength"
-		/>
-		{{ chargeStrength }}
-		<br />
-		Iterations<input type="range" min="1" max="10" v-model="iterations" />
-		{{ iterations }}
-		<br />
-		Collide Strength<input
-			type="range"
-			min="0"
-			max="2"
-			v-model="collideStrength"
-		/>
-		{{ collideStrength }} -->
 		<div class="is-inline">
 			<div class="my-3">
 				<a
@@ -76,13 +58,14 @@ export default {
 	data() {
 		return {
 			w: window.innerWidth * 0.95,
-			h: window.innerHeight * 0.65,
+			h: window.innerHeight * 0.5,
 			simulation: null,
 			svg: null,
+			circles: null,
 			xStrength: 0.5,
 			yStrength: 0.5,
-			iterations: 1, // 1 to 10. Higher iterations = ends overlap quicker
-			// chargeStrength: -2, // -200 to 50. How much "repel" there is between each circle. Higher number = greater attraction
+			iterations: 10, // 1 to 10. Higher iterations = ends overlap quicker
+			chargeStrength: -2, // -200 to 50. How much "repel" there is between each circle. Higher number = greater attraction
 			collideStrength: 1, // 0 to 2.
 			groupingVariables: [
 				"All",
@@ -94,27 +77,27 @@ export default {
 			],
 			selected: "All", // Current selected button
 			personSelected: { text: null, url: null }, // Default null until the user clicks on a person
+			simulationFinished: false,
 		};
 	},
 	mounted() {
+		this.w = window.innerWidth * 0.95;
+		this.h = window.innerHeight * 0.5;
 		this.instantiate();
 	},
-	computed: {
-		chargeStrength() {
-			// * If radius <= 5 (which means length > 100), make negative
-			return this.radius <= 5 ? -this.radius / 2 : 1; // else positive
-		},
-		// centerScale() {
-		// 	return d3.scalePoint().padding(0.8).range([0, this.w]);
-		// },
-	},
+	computed: {},
 	methods: {
 		instantiate: function () {
-			this.w = window.innerWidth * 0.95;
-			this.h = window.innerHeight * 0.65;
+			this.svg = d3
+				.select("#diagram")
+				.attr("width", this.w)
+				.attr("height", this.h);
+
+			// * If simulation is running, stop it
+			this.simulation ? this.simulation.stop() : null;
 
 			this.simulation = d3
-				.forceSimulation(this.data)
+				.forceSimulation()
 				.force(
 					"collide",
 					d3
@@ -126,22 +109,27 @@ export default {
 				.force("charge", d3.forceManyBody().strength(this.chargeStrength))
 				.force(
 					"y",
-					d3.forceY().y(this.h / 2)
-					// .strength(this.yStrength)
+					d3
+						.forceY()
+						.y(this.h / 2)
+						.strength(this.yStrength)
 				)
 				.force(
 					"x",
-					d3.forceX().x(this.w / 2)
-					// .strength(this.xStrength)
+					d3
+						.forceX()
+						.x(this.w / 2)
+						.strength(this.xStrength)
 				)
-				.on("tick", ticked);
+				.tick(this.iterations)
+				.on("tick", ticked)
+				.on("end", function () {
+					console.log("ended!");
+					this.simulationFinished = true;
+					console.log(this.simulationFinished);
+				});
 
-			this.svg = d3
-				.select("#diagram")
-				.attr("width", this.w)
-				.attr("height", this.h);
-
-			const circles = this.svg
+			this.circles = this.svg
 				.selectAll("circle")
 				.data(this.data)
 				.attr("r", this.radius)
@@ -150,16 +138,10 @@ export default {
 				.style("stroke-width", 1)
 				.style("pointer-events", "all");
 
+			const self = this;
 			function ticked() {
-				circles.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+				self.circles.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
 			}
-
-			// Define a function that moves circles to the front on hover https://gist.github.com/trtg/3922684
-			d3.selection.prototype.moveToFront = function () {
-				return this.each(function () {
-					this.parentNode.appendChild(this);
-				});
-			};
 
 			this.simulation.nodes(this.data).on("tick", ticked).alpha(1).restart();
 		},
@@ -178,30 +160,68 @@ export default {
 					})
 				);
 
-				// console.log(centerScale.domain());
 				this.showTitles(this.centerScale);
+
+				const self = this;
+				const ticked = function () {
+					self.circles.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+				};
 
 				this.simulation
 					.force(
 						"x",
-						d3.forceX().x((d) => this.centerScale(d[group]))
+						d3
+							.forceX()
+							.x((d) => this.centerScale(d[group]))
+							.strength(this.xStrength)
 					)
-					.force("charge", d3.forceManyBody().strength(this.chargeStrength));
+					.force("charge", d3.forceManyBody().strength(this.chargeStrength))
+					.force(
+						"collide",
+						d3
+							.forceCollide()
+							.radius(this.radius)
+							.strength(this.collideStrength)
+							.iterations(this.iterations)
+					);
 
-				this.simulation.alpha(1).restart();
-
-				this.svg
-					.selectAll("circle")
-					.data(this.data)
-					.attr("r", this.radius)
-					.style("fill", (d) => this.colorScale(d.Race));
+				this.simulation.on("tick", ticked).alpha(1).restart();
 			}
 		},
 		groupBubbles: function () {
 			this.hideTitles();
 
-			this.simulation.force("x", d3.forceX().x(this.w / 2));
-			this.simulation.alpha(1).restart();
+			const self = this;
+			function ticked() {
+				self.circles.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+			}
+
+			this.simulation
+				.force(
+					"x",
+					d3
+						.forceX()
+						.x(this.w / 2)
+						.strength(this.xStrength)
+				)
+				.force(
+					"y",
+					d3
+						.forceY()
+						.y(this.h / 2)
+						.strength(this.yStrength)
+				)
+				.force(
+					"collide",
+					d3
+						.forceCollide()
+						.radius(this.radius)
+						.strength(this.collideStrength)
+						.iterations(this.iterations)
+				)
+				.force("charge", d3.forceManyBody().strength(this.chargeStrength));
+
+			this.simulation.on("tick", ticked).alpha(1).restart();
 		},
 		changeText: function (event) {
 			const d = event.originalTarget.__data__;
@@ -299,7 +319,11 @@ export default {
 				.attr("rx", 5)
 				// If there are 4+ groups, stagger y position slightly
 				.attr("y", (d, i) =>
-					textData.length > 4 ? (i % 2 ? LABEL_POS * 2 : LABEL_POS) : LABEL_POS
+					textData.length > 4 && this.w < 600
+						? i % 2
+							? LABEL_POS * 2
+							: LABEL_POS
+						: LABEL_POS
 				)
 				// eslint-disable-line no-unused-vars
 				.attr("transform", (d, i) => `translate(-${textWidth[i] / 2}, -20)`) // Rect should be centered, hence textWidth/2
@@ -319,10 +343,21 @@ export default {
 				.merge(titles)
 				.attr("x", (d) => scale(d))
 				.attr("y", (d, i) =>
-					textData.length > 4 ? (i % 2 ? LABEL_POS * 2 : LABEL_POS) : LABEL_POS
+					textData.length > 4 && this.w < 600
+						? i % 2
+							? LABEL_POS * 2
+							: LABEL_POS
+						: LABEL_POS
 				)
 				.text((d) => d)
 				.attr("text-anchor", "middle");
+
+			// Define a function that moves circles to the front on hover https://gist.github.com/trtg/3922684
+			d3.selection.prototype.moveToFront = function () {
+				return this.each(function () {
+					this.parentNode.appendChild(this);
+				});
+			};
 
 			rects.moveToFront();
 			titles.moveToFront();
@@ -340,6 +375,13 @@ export default {
 			tooltip.transition().duration(500).style("opacity", 0);
 		},
 		highlightCircle: function (event) {
+			// Define a function that moves circles to the front on hover https://gist.github.com/trtg/3922684
+			d3.selection.prototype.moveToFront = function () {
+				return this.each(function () {
+					this.parentNode.appendChild(this);
+				});
+			};
+
 			const circle = event.originalTarget;
 			d3.select(circle)
 				.moveToFront()
@@ -425,14 +467,17 @@ export default {
 		},
 		watchResize: function () {
 			this.selected = "All";
-			// this.hideTitles();
+			this.hideTitles();
 
 			this.w = window.innerWidth * 0.95;
-			this.h = window.innerHeight * 0.65;
+			this.h = window.innerHeight * 0.5;
 
-			this.svg.attr("width", this.w).attr("height", this.h);
+			// this.svg.attr("width", this.w).attr("height", this.h);
 
-			// this.centerScale;
+			// d3.select("svg > *").remove();
+			// this.simulation = null;
+			// this.svg = null;
+			this.instantiate();
 			this.groupBubbles();
 		},
 	},
@@ -457,6 +502,7 @@ export default {
 	border: 1px solid #e0e0e0;
 	display: block;
 	max-width: 350px;
+	opacity: 0;
 }
 
 .flex-grow {

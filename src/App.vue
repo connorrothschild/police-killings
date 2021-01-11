@@ -45,9 +45,9 @@ export default {
 		return {
 			killings: [],
 			departments: [],
-			w: window.innerWidth * 0.9,
+			w: window.innerWidth * 0.95,
 			h: window.innerHeight * 0.5,
-			radius: 10,
+			radius: null,
 			selected: "Houston Police Department (TX)",
 			filterType: "department",
 		};
@@ -96,22 +96,31 @@ export default {
 			let canvasSize = w * 2 + h * 2;
 			// let r;
 			// FIXME: Need better (?) way to handle small lengths
-			let r = length < 50 ? 10 : canvasSize / length / 4;
-			// if (length > 500) {
-			// r = canvasSize / length;
-			// } else if (length > 200) {
-			// 	r = canvasSize / length / 7;
-			// } else if (length > 100) {
-			// 	r = canvasSize / length / 10;
-			// } else if (length > 50) {
-			// 	r = canvasSize / length / 12;
-			// } else if (length > 25) {
-			// 	r = canvasSize / length / 14;
-			// } else if (length > 10) {
-			// 	r = canvasSize / length / 16;
-			// } else {
-			// 	r = canvasSize / length / 20;
-			// }
+			let r;
+			// = function () {
+			// 	if (length < 50) {
+			// 		return 10;
+			// 	} else if (length > 100) {
+			// 		return canvasSize / length / 10;
+			// 	} else {
+			// 		return canvasSize / length / 4;
+			// 	}
+			// };
+			if (length > 500) {
+				r = canvasSize / length;
+			} else if (length > 200) {
+				r = canvasSize / length / 7;
+			} else if (length > 100) {
+				r = canvasSize / length / 10;
+			} else if (length > 50) {
+				r = canvasSize / length / 12;
+			} else if (length > 25) {
+				r = canvasSize / length / 14;
+			} else if (length > 10) {
+				r = canvasSize / length / 16;
+			} else {
+				r = canvasSize / length / 20;
+			}
 
 			return r;
 		},
@@ -140,11 +149,6 @@ export default {
 	watch: {
 		computedData() {
 			this.radius = this.radiusFunction;
-			// console.log(
-			// 	"Radius is",
-			// 	this.radius,
-			// 	". Changed because computedData changed"
-			// );
 		},
 		w() {
 			this.radius = this.radiusFunction;
