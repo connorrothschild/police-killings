@@ -1,7 +1,7 @@
 <template>
-	<div class="subtitle has-text-dark mt-2 px-1">
+	<div class="subtitle is-size-6-mobile has-text-dark mt-2 px-1">
 		<p>
-			Between 2013 and 2020, the
+			Between 2013 and 2021, the
 			{{ this.filterType == "state" ? selected + " police " : selected }} killed
 			<span class="has-text-weight-semibold"
 				>{{ dataLength }} {{ this.personFunction }}</span

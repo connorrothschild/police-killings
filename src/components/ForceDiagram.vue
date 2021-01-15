@@ -62,9 +62,9 @@ export default {
 			simulation: null,
 			svg: null,
 			circles: null,
-			xStrength: 0.5,
-			yStrength: 0.5,
-			iterations: 10, // 1 to 10. Higher iterations = ends overlap quicker
+			xStrength: 0.1,
+			yStrength: 0.1,
+			iterations: 2, // 1 to 10. Higher iterations = ends overlap quicker
 			chargeStrength: -2, // -200 to 50. How much "repel" there is between each circle. Higher number = greater attraction
 			collideStrength: 1, // 0 to 2.
 			groupingVariables: [
@@ -98,6 +98,7 @@ export default {
 
 			this.simulation = d3
 				.forceSimulation()
+				.velocityDecay(0.5)
 				.force(
 					"collide",
 					d3
@@ -146,19 +147,54 @@ export default {
 			this.simulation.nodes(this.data).on("tick", ticked).alpha(1).restart();
 		},
 		splitBubbles: function (group) {
+			// * If simulation is running, stop it
+			this.simulation ? this.simulation.stop() : null;
 			this.selected = group;
 
 			if (group == "All") {
 				this.groupBubbles();
 			} else {
 				this.centerScale = d3.scalePoint().padding(0.8).range([0, this.w]);
+
 				const data = this.data;
 
-				this.centerScale.domain(
-					data.map(function (d) {
-						return d[group];
-					})
-				);
+				let labels = data.map(function (d) {
+					return d[group];
+				});
+
+				const set = new Set([...labels]);
+
+				// * Goal: take top 3 causes of death and put all remaining ones into an 'unknown category'
+				if ((group == "Cause of death") & (set.size > 4)) {
+					// Group by count
+					const grouped = labels.reduce((total, value) => {
+						total[value] = (total[value] || 0) + 1;
+						return total;
+					}, {});
+
+					// Get an array of the keys:
+					let keys = Object.keys(grouped);
+
+					// Then sort by using the keys to lookup the values in the original object:
+					const sorted = keys.sort(function (a, b) {
+						return grouped[b] - grouped[a];
+					});
+
+					// Only take top 3
+					labels = sorted.slice(0, 3);
+					labels.push("Other");
+
+					// Here, we replace the cause of death if it doesn't fall within the labels specified above
+					// Workaround since d3.scalePoint() doesn't allow .unknown() / .scaleImplicit()
+					data.forEach((d) => {
+						d["Cause of death"] = labels.includes(d["Cause of death"])
+							? d["Cause of death"]
+							: "Other";
+					});
+				}
+
+				this.centerScale.domain(labels);
+				console.log(this.centerScale);
 
 				this.showTitles(this.centerScale);
 
@@ -189,6 +225,8 @@ export default {
 			}
 		},
 		groupBubbles: function () {
+			// * If simulation is running, stop it
+			this.simulation ? this.simulation.stop() : null;
 			this.hideTitles();
 
 			const self = this;
@@ -274,7 +312,6 @@ export default {
 			// Here, we create a series of text labels, one for each group, that each have a rectangle behind them
 			// The rectangle's width is responsive to the text length, using this.getComputedTextLength
 			// https://stackoverflow.com/questions/29031659/calculate-width-of-text-before-drawing-the-text
-
 			// Destructure svg for convenient use
 			const { svg } = this;
 
