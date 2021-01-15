@@ -107,7 +107,7 @@ export default {
 						.strength(this.collideStrength)
 						.iterations(this.iterations)
 				)
-				.force("charge", d3.forceManyBody().strength(this.chargeStrength))
+				// .force("charge", d3.forceManyBody().strength(this.chargeStrength))
 				.force(
 					"y",
 					d3
@@ -123,12 +123,12 @@ export default {
 						.strength(this.xStrength)
 				)
 				.tick(this.iterations)
-				.on("tick", ticked)
-				.on("end", function () {
-					console.log("ended!");
-					this.simulationFinished = true;
-					console.log(this.simulationFinished);
-				});
+				.on("tick", ticked);
+			// .on("end", function () {
+			// 	console.log("ended!");
+			// 	this.simulationFinished = true;
+			// 	console.log(this.simulationFinished);
+			// });
 
 			this.circles = this.svg
 				.selectAll("circle")
@@ -194,7 +194,6 @@ export default {
 				}
 
 				this.centerScale.domain(labels);
-				console.log(this.centerScale);
 
 				this.showTitles(this.centerScale);
 
@@ -211,7 +210,7 @@ export default {
 							.x((d) => this.centerScale(d[group]))
 							.strength(this.xStrength)
 					)
-					.force("charge", d3.forceManyBody().strength(this.chargeStrength))
+					// .force("charge", d3.forceManyBody().strength(this.chargeStrength))
 					.force(
 						"collide",
 						d3
@@ -256,8 +255,8 @@ export default {
 						.radius(this.radius)
 						.strength(this.collideStrength)
 						.iterations(this.iterations)
-				)
-				.force("charge", d3.forceManyBody().strength(this.chargeStrength));
+				);
+			// .force("charge", d3.forceManyBody().strength(this.chargeStrength));
 
 			this.simulation.on("tick", ticked).alpha(1).restart();
 		},
@@ -503,26 +502,23 @@ export default {
 				${temp_date[2]}, ${temp_date[0]}`;
 		},
 		watchResize: function () {
+			this.simulation.stop();
+
 			this.selected = "All";
 			this.hideTitles();
 
 			this.w = window.innerWidth * 0.95;
 			this.h = window.innerHeight * 0.5;
 
-			// this.svg.attr("width", this.w).attr("height", this.h);
-
-			// d3.select("svg > *").remove();
-			// this.simulation = null;
-			// this.svg = null;
 			this.instantiate();
-			this.groupBubbles();
+			this.splitBubbles("All");
 		},
 	},
 	created() {
-		window.addEventListener("resize", debounce(this.watchResize, 500));
+		window.addEventListener("resize", debounce(this.watchResize, 1000));
 	},
 	destroyed() {
-		window.removeEventListener("resize", debounce(this.watchResize, 500));
+		window.removeEventListener("resize", debounce(this.watchResize, 1000));
 	},
 	watch: {},
 };

@@ -83,43 +83,28 @@ export default {
 			return data;
 		},
 		radiusFunction() {
-			// canvasSize cannot be smaller than (r * 2) * this.computedData.length
-			// human terms: bubble diameter * number of bubbles
-			// algebra: (canvasSize/this.computedData.length) / 2 == r
-			// but because space isnt evenly distributed in canvas, even this doesn't work exactly
-			// divide by 4 just to be safe (rather too small than too large!)
-
 			const length = this.computedData.length;
 			var w = this.w;
 			var h = this.h;
 
 			let canvasSize = w * 2 + h * 2;
-			// let r;
-			// FIXME: Need better (?) way to handle small lengths
 			let r;
-			// = function () {
-			// 	if (length < 50) {
-			// 		return 10;
-			// 	} else if (length > 100) {
-			// 		return canvasSize / length / 10;
-			// 	} else {
-			// 		return canvasSize / length / 4;
-			// 	}
-			// };
-			if (length > 500) {
+			if (length > 1000) {
+				r = (canvasSize / length) * 2;
+			} else if (length > 500) {
 				r = canvasSize / length;
 			} else if (length > 200) {
-				r = canvasSize / length / 7;
+				r = canvasSize / length / 3;
 			} else if (length > 100) {
-				r = canvasSize / length / 10;
+				r = canvasSize / length / 4;
 			} else if (length > 50) {
-				r = canvasSize / length / 12;
+				r = canvasSize / length / 5;
 			} else if (length > 25) {
-				r = canvasSize / length / 14;
+				r = canvasSize / length / 7.5;
 			} else if (length > 10) {
-				r = canvasSize / length / 16;
+				r = canvasSize / length / 10;
 			} else {
-				r = canvasSize / length / 20;
+				r = canvasSize / length / 12.5;
 			}
 
 			return r;
@@ -141,10 +126,10 @@ export default {
 		},
 	},
 	created() {
-		window.addEventListener("resize", debounce(this.watchResize, 500));
+		window.addEventListener("resize", debounce(this.watchResize, 1000));
 	},
 	destroyed() {
-		window.removeEventListener("resize", debounce(this.watchResize, 500));
+		window.removeEventListener("resize", debounce(this.watchResize, 1000));
 	},
 	watch: {
 		computedData() {
