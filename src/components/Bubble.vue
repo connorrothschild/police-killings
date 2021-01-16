@@ -3,11 +3,12 @@
 		:r="r"
 		:cx="cx"
 		:cy="cy"
-		@mouseover="showTooltip"
-		@mouseout="hideTooltip"
-		@mouseenter="highlightCircle"
-		@mouseleave="unhighlightCircle"
-	/>
+		v-on:mouseover="showTooltip"
+		v-on:mouseout="hideTooltip"
+		v-on:mouseenter="highlightCircle"
+		v-on:mouseleave="unhighlightCircle"
+		v-on:click="$emit('click')"
+	></circle>
 </template>
 
 <script>

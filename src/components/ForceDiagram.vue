@@ -7,8 +7,8 @@
 					:href="personSelected.url"
 					rel="noopener"
 					target="_blank"
-					v-html="personSelected.text"
-				></a>
+					>{{ personSelected.text }}</a
+				>
 				<p v-else>Click for more information on an incident.</p>
 			</div>
 			<div>
@@ -33,7 +33,6 @@
 					:r="radius"
 					:cx="item.x"
 					:cy="item.y"
-					@click.native="changeText"
 				/>
 			</svg>
 			<div id="tooltip" class="tooltip"></div>
@@ -132,9 +131,19 @@ export default {
 				.style("stroke", "black")
 				.style("fill", (d) => this.colorScale(d.Race))
 				.style("stroke-width", 1)
-				.style("pointer-events", "all");
+				.style("pointer-events", "auto");
 
 			const self = this;
+			this.circles.on("click", function (event) {
+				const el = event.originalTarget.__data__;
+
+				el.Name =
+					el.Name == "Name withheld by police" ? "this victim" : el.Name;
+
+				self.personSelected.text = `Take me to a news article describing ${el.Name}'s death.`;
+				self.personSelected.url = el.Link;
+			});
+
 			function ticked() {
 				self.circles.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
 			}
@@ -254,14 +263,6 @@ export default {
 			// .force("charge", d3.forceManyBody().strength(this.chargeStrength));
 
 			this.simulation.on("tick", ticked).alpha(1).restart();
-		},
-		changeText: function (event) {
-			const d = event.originalTarget.__data__;
-
-			d.Name = d.Name == "Name withheld by police" ? "this victim" : d.Name;
-
-			this.personSelected.text = `Take me to a news article describing <span class='inline-link'>${d.Name}</span>'s death.`;
-			this.personSelected.url = d.Link;
 		},
 		showTitles: function (scale) {
 			// * A rather big method
@@ -393,6 +394,14 @@ export default {
 				? "Houston Police Department (TX)"
 				: selected_loc;
 		},
+		// changeText: function (event) {
+		// 	const el = event.originalTarget.__data__;
+
+		// 	el.Name = el.Name == "Name withheld by police" ? "this victim" : el.Name;
+
+		// 	this.personSelected.text = `Take me to a news article describing <span class='inline-link'>${el.Name}</span>'s death.`;
+		// 	this.personSelected.url = el.Link;
+		// },
 		watchResize: function () {
 			this.simulation.stop();
 
@@ -460,5 +469,9 @@ a[href] {
 
 .input:active {
 	border-color: black;
+}
+
+#diagram {
+	pointer-events: none;
 }
 </style>
