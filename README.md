@@ -1,24 +1,6 @@
 # Police Violence in the United States
 
-## Project setup
-```
-npm install
-```
+My project documenting police killings, featured on the [Mapping Police Violence homepage.](https://mappingpoliceviolence.org/) Built with Vue & D3.js.
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+[![Project thumbnail](src/assets/twit.png)](https://connorrothschild.github.io/police-killings/)
 
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
