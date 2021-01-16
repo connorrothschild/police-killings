@@ -3,11 +3,13 @@
 		<div class="is-inline">
 			<div class="my-3">
 				<a
-					v-if="personSelected.text && personSelected.url"
+					v-if="personSelected.name && personSelected.url"
 					:href="personSelected.url"
 					rel="noopener"
 					target="_blank"
-					>{{ personSelected.text }}</a
+					>Take me to a news article describing
+					<span class="inline-link">{{ personSelected.name }}</span
+					>'s death</a
 				>
 				<p v-else>Click for more information on an incident.</p>
 			</div>
@@ -33,6 +35,7 @@
 					:r="radius"
 					:cx="item.x"
 					:cy="item.y"
+					@click="changeText"
 				/>
 			</svg>
 			<div id="tooltip" class="tooltip"></div>
@@ -75,7 +78,7 @@ export default {
 				"Year",
 			],
 			selected: "All", // Current selected button
-			personSelected: { text: null, url: null }, // Default null until the user clicks on a person
+			personSelected: { name: null, url: null }, // Default null until the user clicks on a person
 			simulationFinished: false,
 		};
 	},
@@ -131,7 +134,7 @@ export default {
 				.style("stroke", "black")
 				.style("fill", (d) => this.colorScale(d.Race))
 				.style("stroke-width", 1)
-				.style("pointer-events", "auto");
+				.style("pointer-events", "all");
 
 			const self = this;
 			this.circles.on("click", function (event) {
@@ -140,7 +143,7 @@ export default {
 				el.Name =
 					el.Name == "Name withheld by police" ? "this victim" : el.Name;
 
-				self.personSelected.text = `Take me to a news article describing ${el.Name}'s death.`;
+				self.personSelected.name = el.Name;
 				self.personSelected.url = el.Link;
 			});
 
