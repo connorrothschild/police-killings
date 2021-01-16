@@ -36,10 +36,11 @@ export default {
 	position: fixed;
 	bottom: 0;
 	width: 100%;
-	background-color: whitesmoke;
+	background-color: white;
 	color: black;
 	text-align: center;
-	padding: 15px 0;
+	padding: 15px;
+	text-align: right;
 }
 
 .link {

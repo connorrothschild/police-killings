@@ -1,6 +1,6 @@
 <template>
 	<div id="app">
-		<div class="has-background-light pt-5 pb-4">
+		<div class="pt-5 pb-4">
 			<DepartmentSelector
 				:departments="departments"
 				v-on:childToParent="receiveDepartmentName"

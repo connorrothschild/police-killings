@@ -13,7 +13,7 @@ git init
 git add -A
 git commit -m 'deploy'
 
-git push -f git@github.com:connorrothschild/police-killings-v2.git master:gh-pages
+git push -f git@github.com:connorrothschild/police-killings.git master:gh-pages
 
 cd -
 
