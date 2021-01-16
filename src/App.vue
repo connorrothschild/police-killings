@@ -53,10 +53,10 @@ export default {
 		};
 	},
 	async mounted() {
-		const killings = await d3.csv("/data/cleaned_data.csv");
+		const killings = await d3.csv("./data/cleaned_data.csv");
 		this.killings = killings;
 
-		const departments = await d3.csv("/data/department_data.csv");
+		const departments = await d3.csv("./data/department_data.csv");
 		this.departments = departments.map((d) => d.all_agencies);
 	},
 	computed: {
@@ -137,11 +137,11 @@ export default {
 		},
 		w() {
 			this.radius = this.radiusFunction;
-			console.log("Radius is", this.radius, ". Changed because width changed");
+			// console.log("Radius is", this.radius, ". Changed because width changed");
 		},
 		h() {
 			this.radius = this.radiusFunction;
-			console.log("Radius is", this.radius, ". Changed because height changed");
+			// console.log("Radius is", this.radius, ". Changed because height changed");
 		},
 	},
 };
