@@ -137,11 +137,9 @@ export default {
 		},
 		w() {
 			this.radius = this.radiusFunction;
-			// console.log("Radius is", this.radius, ". Changed because width changed");
 		},
 		h() {
 			this.radius = this.radiusFunction;
-			// console.log("Radius is", this.radius, ". Changed because height changed");
 		},
 	},
 };
