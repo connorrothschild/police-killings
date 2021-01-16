@@ -1,4 +1,4 @@
-# police-killings-v2
+# Police Violence in the United States
 
 ## Project setup
 ```

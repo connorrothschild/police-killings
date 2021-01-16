@@ -12,12 +12,14 @@
 				:dataLength="computedData.length"
 				:selected="selected"
 				:filterType="filterType"
+				:personSelected="personSelected"
 			/>
 		</div>
 		<ForceDiagram
 			v-if="computedData.length > 0 && selected"
 			:data="computedData"
 			:radius="radius"
+			v-on:childToParent="receivePersonSelected"
 		/>
 		<Footer />
 	</div>
@@ -50,6 +52,7 @@ export default {
 			radius: null,
 			selected: "Houston Police Department (TX)",
 			filterType: "department",
+			personSelected: null,
 		};
 	},
 	async mounted() {
@@ -119,10 +122,17 @@ export default {
 		receiveStateName(value) {
 			this.filterType = "state";
 			this.selected = value;
+			// On state or department change, we need to clear top level text that has a name
+			this.personSelected = null;
 		},
 		receiveDepartmentName(value) {
 			this.filterType = "department";
 			this.selected = value;
+			// On state or department change, we need to clear top level text that has a name
+			this.personSelected = null;
+		},
+		receivePersonSelected(value) {
+			this.personSelected = value;
 		},
 	},
 	created() {
@@ -155,6 +165,11 @@ export default {
 	color: black;
 }
 
+html {
+	-ms-touch-action: manipulation;
+	touch-action: manipulation;
+}
+
 .vertical-center {
 	align-self: center;
 }
@@ -168,5 +183,9 @@ export default {
 		margin-right: 0 !important;
 		margin-bottom: 0.75rem !important;
 	}
+}
+
+.input {
+	text-align: center;
 }
 </style>

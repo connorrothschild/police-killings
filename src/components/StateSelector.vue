@@ -1,5 +1,5 @@
 <template>
-	<div class="is-inline-flex mb-3-mobile">
+	<div class="is-flex is-justify-content-center mb-3-mobile">
 		<p
 			class="has-text-dark vertical-center is-size-6 has-text-weight-lighter mr-3"
 		>

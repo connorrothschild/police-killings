@@ -8,6 +8,8 @@
 		v-on:mouseenter="highlightCircle"
 		v-on:mouseleave="unhighlightCircle"
 		v-on:click="$emit('click')"
+		v-touch="$emit('click')"
+		class="circle"
 	></circle>
 </template>
 
@@ -29,7 +31,11 @@ export default {
 
 			var tooltip = d3.select("#tooltip").style("opacity", 0);
 
-			tooltip.transition().delay(150).duration(500).style("opacity", 1);
+			tooltip
+				.transition()
+				// .delay(150)
+				.duration(500)
+				.style("opacity", 1);
 
 			const tooltip_string = `<p class='title is-size-6 mb-1 has-text-centered has-text-black'> ${
 				d.Name
@@ -51,7 +57,6 @@ export default {
 				) // so that tooltip doesnt go off right side of screen
 				.style("top", event.pageY - 30 + "px");
 		},
-
 		hideTooltip: function () {
 			var tooltip = d3.select("#tooltip");
 			tooltip.transition().duration(500).style("opacity", 0);
@@ -68,7 +73,7 @@ export default {
 			d3.select(circle)
 				.moveToFront()
 				.transition()
-				.delay(150)
+				// .delay(150)
 				.attr("r", this.r * 2);
 		},
 		unhighlightCircle: function (event) {
@@ -122,4 +127,7 @@ export default {
 </script>
 
 <style>
+.circle {
+	cursor: pointer;
+}
 </style>

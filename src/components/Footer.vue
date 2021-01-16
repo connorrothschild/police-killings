@@ -6,6 +6,7 @@
 				href="https://twitter.com/CL_Rothschild"
 				target="_blank"
 				rel="noopener"
+				class="link"
 			>
 				Connor Rothschild</a
 			>
@@ -39,5 +40,9 @@ export default {
 	color: black;
 	text-align: center;
 	padding: 15px 0;
+}
+
+.link {
+	text-decoration: underline;
 }
 </style>
