@@ -61,6 +61,7 @@ export default {
 				"All",
 				"Race",
 				"Sex",
+				"Encounter Type",
 				"Armed Status",
 				"Cause of death",
 				"Year",
@@ -155,7 +156,7 @@ export default {
 				const set = new Set([...labels]);
 
 				// * Goal: take top 3 causes of death and put all remaining ones into an 'unknown category'
-				if ((group == "Cause of death") & (set.size > 4)) {
+				if ((group == "Cause of death" | group == 'Encounter Type') & (set.size > 4)) {
 					// Group by count
 					const grouped = labels.reduce((total, value) => {
 						total[value] = (total[value] || 0) + 1;
@@ -176,11 +177,19 @@ export default {
 
 					// Here, we replace the cause of death if it doesn't fall within the labels specified above
 					// Workaround since d3.scalePoint() doesn't allow .unknown() / .scaleImplicit()
+					if (group == 'Cause of death') {
 					data.forEach((d) => {
 						d["Cause of death"] = labels.includes(d["Cause of death"])
 							? d["Cause of death"]
 							: "Other";
 					});
+					} else if (group == 'Encounter Type') {
+						data.forEach((d) => {
+						d['Encounter Type'] = labels.includes(d['Encounter Type'])
+							? d['Encounter Type']
+							: "Other";
+					});
+					}
 				}
 
 				this.centerScale.domain(labels);
@@ -265,7 +274,7 @@ export default {
 			let textWidth = [];
 
 			// Define some constants
-			const LABEL_POS = 40; // Y position of labels
+			const LABEL_POS = this.w < 768 ? 40 : 38; // Y position of labels
 			const RECT_HEIGHT = 30;
 
 			// Instantiate groups
@@ -299,7 +308,7 @@ export default {
 				.attr("rx", 5)
 				// If there are 4+ groups, stagger y position slightly
 				.attr("y", (d, i) =>
-					textData.length > 4 && this.w < 600
+					textData.length > 3 && this.w < 600
 						? i % 2
 							? LABEL_POS * 2
 							: LABEL_POS
@@ -310,8 +319,8 @@ export default {
 				// eslint-disable-line no-unused-vars
 				.attr("width", (d, i) => textWidth[i])
 				.attr("height", RECT_HEIGHT)
-				.style("fill", "white")
-				// .style("fill", "#F5F5F5")
+				// .style("fill", "whitesmoke")
+				.style("fill", "#F5F5F5")
 				.style("opacity", 0.95);
 
 			// ! TODO: add # of obs after text (e.g. "Unarmed (6 people)")
@@ -324,14 +333,14 @@ export default {
 				.merge(titles)
 				.attr("x", (d) => scale(d))
 				.attr("y", (d, i) =>
-					textData.length > 4 && this.w < 600
+					textData.length > 3 && this.w < 600
 						? i % 2
 							? LABEL_POS * 2
 							: LABEL_POS
 						: LABEL_POS
 				)
 				.text((d) => d)
-				.attr("text-anchor", "middle");
+				.attr("text-anchor", "middle")
 
 			// Define a function that moves circles to the front on hover https://gist.github.com/trtg/3922684
 			d3.selection.prototype.moveToFront = function () {
@@ -402,106 +411,6 @@ export default {
 			this.instantiate();
 			this.splitBubbles("All");
 		},
-		// showTooltip: function (event) {
-		// 	event.stopPropagation();
-		// 	event.preventDefault();
-		// 	var self = this;
-		// 	const d = event.originalTarget.__data__;
-
-		// 	var tooltip = d3.select("#tooltip").style("opacity", 0);
-
-		// 	tooltip
-		// 		.transition()
-		// 		// .delay(150)
-		// 		.duration(500)
-		// 		.style("opacity", 1);
-
-		// 	const tooltip_string = `<p class='title is-size-6 mb-1 has-text-centered has-text-black'> ${
-		// 		d.Name
-		// 	} </p>
-		// 	<p class='is-size-7 has-text-centered'>${self.ageFunction(
-		// 		d.Age
-		// 	)} ${self.raceFunction(d.Race)} ${self.sexFunction(d.Sex)}.
-		// 	<p class='is-size-7 has-text-centered'>Killed by ${d[
-		// 		"Agencies responsible for death"
-		// 	].replace(/,(?=[^,]*$)/, " and")} on ${self.dateFunction(d.Date)}.`;
-
-		// 	// alert(event.touches[0].clientX);
-		// 	tooltip
-		// 		.html(tooltip_string)
-		// 		.style(
-		// 			"left",
-		// 			event.touches[0].clientX > 0.8 * this.w
-		// 				? event.touches[0].clientX - 250 + "px"
-		// 				: event.touches[0].clientX + 30 + "px"
-		// 		) // so that tooltip doesnt go off right side of screen
-		// 		.style("top", event.touches[0].clientY - 30 + "px");
-		// },
-		// hideTooltip: function () {
-		// 	var tooltip = d3.select("#tooltip");
-		// 	tooltip.transition().duration(500).style("opacity", 0);
-		// },
-		// highlightCircle: function (event) {
-		// 	// Define a function that moves circles to the front on hover https://gist.github.com/trtg/3922684
-		// 	d3.selection.prototype.moveToFront = function () {
-		// 		return this.each(function () {
-		// 			this.parentNode.appendChild(this);
-		// 		});
-		// 	};
-
-		// 	const circle = event.originalTarget;
-		// 	d3.select(circle)
-		// 		.moveToFront()
-		// 		.transition()
-		// 		// .delay(150)
-		// 		.attr("r", this.r * 2);
-		// },
-		// unhighlightCircle: function (event) {
-		// 	const circle = event.originalTarget;
-		// 	d3.select(circle).transition().attr("r", this.r);
-		// },
-		// ageFunction: function (age) {
-		// 	return isNaN(age) | (age == 0) ? "A" : `A ${age} year old`;
-		// },
-		// raceFunction: function (race) {
-		// 	return (race == undefined) | (race == "Unknown Race") ? "" : race;
-		// },
-		// sexFunction: function (sex) {
-		// 	return (sex == "Male") | (sex == "Female") ? sex.toLowerCase() : "person";
-		// },
-		// pronounFunction: function (sex) {
-		// 	if (sex == "Male") {
-		// 		return "He was";
-		// 	} else if (sex == "Female") {
-		// 		return "She was";
-		// 	} else {
-		// 		return "They were";
-		// 	}
-		// },
-		// oneOfThemFunction: function (length) {
-		// 	return length == 1 ? "was that person." : "was one of them.";
-		// },
-		// dateFunction: function (date_str) {
-		// 	// h/t https://stackoverflow.com/questions/20438352/how-to-convert-date-to-words-in-html
-		// 	const months = [
-		// 		"January",
-		// 		"February",
-		// 		"March",
-		// 		"April",
-		// 		"May",
-		// 		"June",
-		// 		"July",
-		// 		"August",
-		// 		"September",
-		// 		"October",
-		// 		"November",
-		// 		"December",
-		// 	];
-		// 	// remove timezone
-		// 	const temp_date = date_str.replace("T", "-").split("-");
-		// 	return `${months[Number(temp_date[1] - 1)]}
-		// 		${temp_date[2]}, ${temp_date[0]}`;
-		// },
 	},
 	created() {
 		window.addEventListener("resize", debounce(this.watchResize, 1000));
@@ -541,7 +450,7 @@ a[href] {
 
 @media screen and (max-width: 600px) {
 	.label-text {
-		font-size: 0.5em;
+		font-size: 0.7em;
 	}
 }
 
