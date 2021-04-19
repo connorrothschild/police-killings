@@ -45,7 +45,7 @@ clean_data <- data %>%
          `Encounter Type` = str_replace(`Encounter Type`, "Domestic Disturbance\\-(.*)", 'Domestic Disturbance'),
          # Handling multiples (comma or slash separated) by preferring one over another
          `Encounter Type` = ifelse(str_detect(`Encounter Type`, 'Mental Health/Welfare Check'), 'Mental Health/Welfare Check', `Encounter Type`),
-         `Encounter Type` = ifelse(str_detect(`Encounter Type`, 'Other Non-Violent Offense'), 'Other Non-Violent Offense', `Encounter Type`),
+         `Encounter Type` = ifelse(str_detect(`Encounter Type`, 'Other Non-Violent Offense'), 'Other Non-Violent', `Encounter Type`),
          `Encounter Type` = ifelse(str_detect(`Encounter Type`, 'Part 1 Violent Crime'), 'Part 1 Violent Crime', `Encounter Type`),
          `Encounter Type` = ifelse(str_detect(`Encounter Type`, 'Other Crimes Against People'), 'Other Crimes Against People', `Encounter Type`),
          `Encounter Type` = ifelse(is.na(`Encounter Type`), 'None/Unknown', `Encounter Type`),
