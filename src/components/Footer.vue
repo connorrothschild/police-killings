@@ -1,7 +1,7 @@
 <template>
 	<div class="footer">
 		<p>
-			Built by
+			Diagram by
 			<a
 				href="https://twitter.com/CL_Rothschild"
 				target="_blank"
