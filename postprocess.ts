@@ -20,9 +20,3 @@ const departments = Deno.run({
 });
 
 await departments.status();
-
-const publish = Deno.run({
-    cmd: ['sh', './deploy.sh']
-})
-
-await publish.status();
