@@ -21,5 +21,5 @@ jobs:
         uses: githubocto/flat@v2
         with:
           http_url: https://mappingpoliceviolence.org/s/MPVDatasetDownload.xlsx
-          downloaded_filename: ./public/data/raw.xlsx
+          downloaded_filename: public/raw.xlsx
           postprocess: ./postprocess.ts
