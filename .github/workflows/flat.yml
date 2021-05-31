@@ -22,5 +22,7 @@ jobs:
           http_url: https://mappingpoliceviolence.org/s/MPVDatasetDownload.xlsx
           downloaded_filename: public/data/raw.xlsx
           postprocess: ./postprocess.ts
+      - name: Install execa
+        run: npm install execa
       - name: Deploy app
         run: npm run deploy
