@@ -56,10 +56,10 @@ export default {
 		};
 	},
 	async mounted() {
-		const killings = await d3.csv("./data/cleaned_data.csv");
+		const killings = await d3.csv("./data/cleaned.csv");
 		this.killings = killings;
 
-		const departments = await d3.csv("./data/department_data.csv");
+		const departments = await d3.csv("./data/departments.csv");
 		this.departments = departments.map((d) => d.all_agencies);
 	},
 	computed: {

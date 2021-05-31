@@ -1,8 +1,7 @@
-library(tidyverse)
+library(dplyr)
+library(stringr)
 
-# source('clean-data.R')
-
-data <- readxl::read_excel(here::here("public/data/uncleaned_data.xlsx"))
+data <- readxl::read_excel("../public/data/raw.xlsx")
 
 listed <- data %>% 
   select(`Agency responsible for death`, State) %>% 
@@ -23,4 +22,4 @@ long <- tidyr::unnest(listed, all_agencies) %>%
 departments <- long %>% 
   distinct(all_agencies)
 
-write.csv(departments, here::here("public/data/department_data.csv"), row.names = FALSE)
+readr::write_csv(departments, "../public/data/departments.csv")

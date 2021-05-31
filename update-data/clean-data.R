@@ -1,10 +1,7 @@
-library(tidyverse)
-library(RCurl)
+library(dplyr)
+library(stringr)
 
-url <- "https://mappingpoliceviolence.org/s/MPVDatasetDownload.xlsx"
-download.file(url, destfile = here::here("public/data/uncleaned_data.xlsx"))
-
-raw_data <- readxl::read_excel(here::here("public/data/uncleaned_data.xlsx"))
+raw_data <- readxl::read_excel("../public/data/raw.xlsx")
 
 data <- raw_data %>% 
   rename("Date" = `Date of Incident (month/day/year)`,
@@ -54,6 +51,4 @@ clean_data <- data %>%
          ID = row_number()
          )
 
-readr::write_csv(clean_data, here::here("public/data/cleaned_data.csv"))
-
-source(here::here('update-data/pull-departments.R'))
+readr::write_csv(clean_data, '../public/data/cleaned.csv")
