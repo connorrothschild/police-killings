@@ -4,9 +4,8 @@ on:
     - cron: 0 0 * * *
   workflow_dispatch: {}
   push:
-    paths:
-      - .github/workflows/flat.yml
-      - ./postprocess.ts
+    branches:
+      - master
 jobs:
   scheduled:
     runs-on: ubuntu-latest
@@ -24,4 +23,4 @@ jobs:
           downloaded_filename: public/data/raw.xlsx
           postprocess: ./postprocess.ts
       - name: Deploy app
-        run: chmod +x ./deploy.sh
+        run: npm run deploy
