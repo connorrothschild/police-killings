@@ -51,4 +51,4 @@ clean_data <- data %>%
          ID = row_number()
          )
 
-readr::write_csv(clean_data, '../public/data/cleaned.csv")
+readr::write_csv(clean_data, "../public/data/cleaned.csv")
