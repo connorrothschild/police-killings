@@ -1,8 +1,8 @@
 library(dplyr)
 library(stringr)
 
-raw_data <- readxl::read_excel("../public/data/raw.xlsx")
-print('Raw')
+raw_data <- readxl::read_excel("./public/data/raw.xlsx")
+print('asdf')
 print(nrow(raw_data))
 
 data <- raw_data %>% 
@@ -53,4 +53,4 @@ clean_data <- data %>%
          ID = row_number()
          )
 
-readr::write_csv(clean_data, "../public/data/cleaned.csv")
+readr::write_csv(clean_data, "./public/data/cleaned.csv")
