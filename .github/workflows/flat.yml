@@ -17,6 +17,8 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v2
       - run: |
+          git config user.email "connorrothschild@gmail.com"
+          git config user.name "connorrothschild"
           git add .
           git commit --allow-empty -m "Automatic data update"
           git push
