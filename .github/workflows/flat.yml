@@ -16,8 +16,10 @@ jobs:
           deno-version: v1.x
       - name: Check out repo
         uses: actions/checkout@v2
-        with:
-          ref: 'master'
+      - run: |
+          git add .
+          git commit --allow-empty -m "Automatic data update"
+          git push
       - name: Fetch data
         uses: githubocto/flat@v3
         with:
