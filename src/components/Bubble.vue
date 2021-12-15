@@ -29,7 +29,7 @@ export default {
 			var self = this;
 			const d = event.originalTarget.__data__;
 
-			var tooltip = d3.select("#tooltip").style("opacity", 0);
+			var tooltip = d3.select("#tooltip").style("opacity", 0).attr('class', 'tooltip');
 
 			tooltip
 				.transition()
@@ -55,7 +55,7 @@ export default {
 						? event.pageX - 250 + "px"
 						: event.pageX + 30 + "px"
 				) // so that tooltip doesnt go off right side of screen
-				.style("top", event.pageY - 30 + "px");
+				.style("top", event.pageY - 30 + "px")
 		},
 		hideTooltip: function () {
 			var tooltip = d3.select("#tooltip");
@@ -129,5 +129,9 @@ export default {
 <style>
 .circle {
 	cursor: pointer;
+}
+
+.tooltip {
+	min-width: 400px;
 }
 </style>

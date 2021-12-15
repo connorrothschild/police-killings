@@ -319,9 +319,6 @@ export default {
 				// eslint-disable-line no-unused-vars
 				.attr("width", (d, i) => textWidth[i])
 				.attr("height", RECT_HEIGHT)
-				// .style("fill", "whitesmoke")
-				.style("fill", "#F5F5F5")
-				.style("opacity", 0.95);
 
 			// ! TODO: add # of obs after text (e.g. "Unarmed (6 people)")
 
@@ -339,6 +336,7 @@ export default {
 							: LABEL_POS
 						: LABEL_POS
 				)
+				.attr("dy", 1)
 				.text((d) => d)
 				.attr("text-anchor", "middle")
 
@@ -446,6 +444,7 @@ a[href] {
 
 .label-text {
 	font-size: 1em;
+	fill: rgb(25, 25, 25);
 }
 
 @media screen and (max-width: 600px) {
@@ -462,7 +461,8 @@ a[href] {
 	border-color: black;
 }
 
-/* #diagram {
-	pointer-events: none;
-} */
+.rect {
+	filter: drop-shadow(1px 1px 2px rgba(0,0,0,.25));
+	fill: white;
+}
 </style>

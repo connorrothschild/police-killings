@@ -1,5 +1,5 @@
 <template>
-	<div class="subtitle is-size-6-mobile mt-2 px-1">
+	<div class="subtitle is-size-6-mobile mt-5 px-1">
 		<p class="has-text-black">
 			Between 2013 and 2021, the
 			{{ this.filterType == "state" ? selected + " police " : selected }} killed
